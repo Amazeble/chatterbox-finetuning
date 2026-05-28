@@ -228,7 +228,10 @@ class T3(nn.Module):
         self.tfmr.gradient_checkpointing_enable(gradient_checkpointing_kwargs=gradient_checkpointing_kwargs)
 
     def get_input_embeddings(self):
-        return self.tfmr.get_input_embeddings()
+        try:
+            return self.tfmr.get_input_embeddings()
+        except:
+            return self.text_emb
 
 
     @torch.inference_mode()
