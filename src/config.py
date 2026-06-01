@@ -34,10 +34,10 @@ class TrainConfig:
     is_lora: bool = True   # True: Efficient LoRA training (Recommended for < 10h data)
                            # False: Full Fine-Tune (High VRAM, for massive datasets)
 
-    lora_r: int = 64
-    lora_alpha: int = 128
-    lora_target_modules: List[str] = field(default_factory=lambda: ["c_attn", "c_proj", "c_fc", "spkr_enc"])
-    #lora_target_modules: List[str] = field(default_factory=lambda: ["text_emb", "text_head", "speech_emb", "speech_head"])
+    lora_r: int = 128
+    lora_alpha: int = 256
+    turbo_lora_target_modules: List[str] = field(default_factory=lambda: ["c_attn", "c_proj", "c_fc", "spkr_enc"])
+    lora_target_modules: List[str] = field(default_factory=lambda: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj", "spkr_enc"])
     lora_modules_to_save: List[str] = field(default_factory=lambda: ["text_emb", "text_head"])
     
 
@@ -48,10 +48,10 @@ class TrainConfig:
     new_vocab_size: int = 52260 if is_turbo else 2454 
 
     # --- Hyperparameters ---
-    batch_size: int = 64         # Adjust based on VRAM (2, 4, 8)
+    batch_size: int = 32         # Adjust based on VRAM (2, 4, 8)
     grad_accum: int = 1        # Effective Batch Size = Batch * Accum
     learning_rate: float = 1e-4 if is_lora else 1e-5  # T3 is sensitive, keep low
-    num_epochs: int = 50
+    num_epochs: int = 10 if is_lora else 30
     
     save_steps: int = 500
     save_total_limit: int = 5

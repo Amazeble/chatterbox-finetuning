@@ -108,7 +108,7 @@ def main():
         peft_config = LoraConfig(
             r=cfg.lora_r,
             lora_alpha=cfg.lora_alpha,
-            target_modules=cfg.lora_target_modules,
+            target_modules=cfg.turbo_lora_target_modules if cfg.is_turbo else cfg.lora_target_modules,
             lora_dropout=0.05,
             bias="none",
             modules_to_save=cfg.lora_modules_to_save,

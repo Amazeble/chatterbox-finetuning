@@ -147,7 +147,7 @@ class ChatterboxTrainerWrapper(torch.nn.Module):
         if prompt_lens is not None:
             mask_prompt = torch.arange(curr_speech_len, device=device)[None, :] < prompt_lens[:, None]
         else:
-            logger.info("Prompt lens not provided, using fixed width!")
+            #logger.info("Prompt lens not provided, using fixed width!")
             mask_prompt = torch.arange(curr_speech_len, device=device)[None, :] < prompt_tokens.size(1)
 
 
