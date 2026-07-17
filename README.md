@@ -153,7 +153,7 @@ scoop install ffmpeg
 
 **Install Python Dependencies:**
 ```bash
-git clone https://github.com/gokhaneraslan/chatterbox-finetuning.git
+git clone https://github.com/amazeble/chatterbox-finetuning.git
 cd chatterbox-finetuning
 pip install -r requirements.txt
 ```
