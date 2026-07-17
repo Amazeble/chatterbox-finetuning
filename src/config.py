@@ -47,19 +47,27 @@ class TrainConfig:
     # Directory where setup.py downloaded the files
     model_dir: str = "./pretrained_models"
     
+    # Project name for organizing dataset and outputs (e.g., "Elise")
+    project_name: str = "Elise"
+    
+    # Base dataset directory - will be combined with project_name
+    base_dataset_dir: str = "./MyTTSDataset"
+    
     # Path to your metadata CSV (Format: ID|RawText|NormText)
-    csv_path: str = "./MyTTSDataset/metadata.csv"
-    #metadata_path: str = "./metadata.json"
+    # Will be resolved as {base_dataset_dir}/{project_name}/metadata.csv
+    csv_path: str = None  # Set dynamically in __post_init__
     
     # Directory containing WAV files
-    wav_dir: str = "./MyTTSDataset/wavs"
-    #wav_dir: str = "./FileBasedDataset"
+    # Will be resolved as {base_dataset_dir}/{project_name}/wavs
+    wav_dir: str = None  # Set dynamically in __post_init__
     
-    preprocessed_dir = "./MyTTSDataset/preprocess"
-    #preprocessed_dir = "./FileBasedDataset/preprocess"
+    preprocessed_dir: str = None  # Set dynamically in __post_init__
     
-    # Output directory for the finetuned model
-    output_dir: str = "./chatterbox_output"
+    # Base output directory - will be combined with project_name
+    base_output_dir: str = "./chatterbox_output"
+    
+    # Output directory for the finetuned model (resolved dynamically)
+    output_dir: str = None  # Set dynamically in __post_init__
     
     is_inference = False
     inference_prompt_path: str = "./speaker_reference/2.wav"
@@ -105,3 +113,13 @@ class TrainConfig:
     max_text_len: int = 256
     max_speech_len: int = 850   # Truncates very long audio
     prompt_duration: float = 3.0 # Duration for the reference prompt (seconds)
+    
+    def __post_init__(self):
+        """Resolve paths using project_name"""
+        # Resolve dataset paths
+        self.csv_path = os.path.join(self.base_dataset_dir, self.project_name, "metadata.csv")
+        self.wav_dir = os.path.join(self.base_dataset_dir, self.project_name, "wavs")
+        self.preprocessed_dir = os.path.join(self.base_dataset_dir, self.project_name, "preprocess")
+        
+        # Resolve output path
+        self.output_dir = os.path.join(self.base_output_dir, self.project_name)
