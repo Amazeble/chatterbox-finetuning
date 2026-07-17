@@ -1,1 +1,26 @@
-Nothing should be ignored based on the provided file changes. The modified files ('src/config.py', 'train.py') are source code files that should not be added to .gitignore.
+*.ipynb_checkpoints
+**/.ipynb_checkpoints
+*.pyc
+__pycache__/
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+.env
+.env.local
+.env.*
+.vscode/
+.idea/
+node_modules/
+venv/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+dist/
+build/
+target/
+.gradle/
