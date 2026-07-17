@@ -1,39 +1,55 @@
-```
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-*.ipynb_checkpoints/*
-
-# Colab-specific files
-*.ipynb.swp
-*.ipynb.tmp
-
-# Python compiled files
-*.pyc
-__pycache__/
-
-# Virtual environments
-venv/
-.venv/
-env/
-.env
-
-# Dependencies
-node_modules/
-pip-wheel-metadata/
-.pytest_cache/
-.mypy_cache/
-.coverage
-coverage/
-
-# Logs
+*.ipynb_checkpoints
+.checkpoints/
+.vscode/
+.idea/
 *.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Temporary files
 *.tmp
 *.swp
-*~
-```
+.DS_Store
+Thumbs.db
+.env
+.env.local
+.env.*
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.coverage
+coverage/
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.tox/
+dist/
+build/
+target/
+.gradle/
+node_modules/
+venv/
+.venv/
+.julia/
+zig*/
+julia-*/
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
