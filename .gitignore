@@ -1,47 +1,51 @@
-```
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-*.ipynb~
-
-# Colab-specific files
-*.ipynb_checkpoints/
-
-# Python cache
+*.ipynb_checkpoints
+.checkpoints/
+.vscode/
+.env
+.env.local
+.env.*
+*.log
+*.tmp
+*.swp
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Environment files
-.env
-.env.local
-*.env.*
-
-# Dependencies
-node_modules/
-.venv/
-venv/
-pip-log.txt
-pipenv.lock
-
-# IDE specific
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
-*.log
-
-# OS generated
 .DS_Store
 Thumbs.db
-
-# Coverage reports
+node_modules/
+venv/
+.venv/
+.mypy_cache/
+.pytest_cache/
 .coverage
 htmlcov/
 coverage/
-
-# MyPy cache
-.mypy_cache/
-```
+dist/
+build/
+target/
+.gradle/
+.zsh_history
+.bash_history
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
