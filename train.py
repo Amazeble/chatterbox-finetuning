@@ -63,26 +63,86 @@ def main():
     is_resuming = args.resume is not None
 
     if is_resuming:
-        # RESUME PATH: Load the model directly from checkpoint
-        logger.info(f"Resuming from checkpoint: {args.resume}")
-        logger.info("Loading model from checkpoint (skipping initialization)...")
+        # RESUME PATH: Initialize model architecture exactly as in fresh start,
+        # then load the adapter weights from 'new_lang_adapter', and let Trainer load optimizer state.
+        logger.info(f"Resume mode detected: {args.resume}")
         
-        # Load the engine wrapper
+        # 1. Load the saved adapter weights from the dedicated adapter folder
+        adapter_path = os.path.join(output_dir, "new_lang_adapter")
+        if not os.path.exists(adapter_path):
+            raise FileNotFoundError(f"Adapter directory not found at {adapter_path}. Cannot resume LoRA training without adapter config.")
+        
+        logger.info(f"Loading adapter structure and weights from: {adapter_path}")
+        
+        # --- Copy of Fresh Start Initialization Logic ---
+        logger.info("Loading original model to extract weights (for architecture)...")
+        tts_engine_original = EngineClass.from_local(cfg.model_dir, device="cpu")
+        pretrained_t3_state_dict = tts_engine_original.t3.state_dict()
+        original_t3_config = tts_engine_original.t3.hp
+
+        logger.info(f"Creating new T3 model with vocab size: {cfg.new_vocab_size}")
+        new_t3_config = original_t3_config
+        new_t3_config.text_tokens_dict_size = cfg.new_vocab_size
+        if hasattr(new_t3_config, "use_cache"):
+            new_t3_config.use_cache = False
+        else:
+            setattr(new_t3_config, "use_cache", False)
+
+        new_t3_model = T3(hp=new_t3_config)
+        logger.info("Transferring weights...")
+        new_t3_model = resize_and_load_t3_weights(new_t3_model, pretrained_t3_state_dict)
+
+        if cfg.is_turbo:
+            logger.info("Turbo Mode: Removing backbone WTE layer...")
+            if hasattr(new_t3_model.tfmr, "wte"):
+                del new_t3_model.tfmr.wte
+
+        del tts_engine_original
+        del pretrained_t3_state_dict
+
         tts_engine_new = EngineClass.from_local(cfg.model_dir, device="cpu")
+        tts_engine_new.t3 = new_t3_model
+
+        logger.info("Freezing S3Gen and VoiceEncoder...")
+        for param in tts_engine_new.ve.parameters():
+            param.requires_grad = False
+        for param in tts_engine_new.s3gen.parameters():
+            param.requires_grad = False
+
+        if cfg.is_lora:
+            logger.info("Applying LoRA configuration...")
+            for param in tts_engine_new.t3.parameters():
+                param.requires_grad = False
+            
+            from peft import LoraConfig, get_peft_model
+            logger.info(f"LoRA Target Modules: {cfg.lora_target_modules}")
+            logger.info(f"Modules to Full Train (Embeddings): {cfg.lora_modules_to_save}")
+
+            peft_config = LoraConfig(
+                r=cfg.lora_r,
+                lora_alpha=cfg.lora_alpha,
+                target_modules=cfg.turbo_lora_target_modules if cfg.is_turbo else cfg.lora_target_modules,
+                lora_dropout=0.05,
+                bias="none",
+                modules_to_save=cfg.lora_modules_to_save,
+            )
+            tts_engine_new.t3 = get_peft_model(tts_engine_new.t3, peft_config)
+            
+            # NOW load the saved adapter weights on top of the initialized structure
+            logger.info(f"Loading saved adapter weights from: {adapter_path}")
+            tts_engine_new.t3.load_adapter(adapter_path)
+            logger.info("Adapter weights loaded successfully.")
+        else:
+            logger.info("Full fine-tune: enabling all T3 parameters...")
+            tts_engine_new.t3.train()
+            for param in tts_engine_new.t3.parameters():
+                param.requires_grad = True
+        # -----------------------------------------------
         
-        # Load the T3 model from checkpoint using PEFT
-        from peft import PeftModel
-        # First load the base model config and weights
-        base_t3 = T3(hp=tts_engine_new.t3.hp)
-        tts_engine_new.t3 = base_t3
+        logger.info("Model architecture initialized with checkpoint weights. Trainer will now load optimizer/scheduler state.")
         
-        # Now load the PEFT adapter from checkpoint
-        tts_engine_new.t3 = PeftModel.from_pretrained(tts_engine_new.t3, args.resume)
-        
-        logger.info("Checkpoint loaded successfully. Verifying trainable parameters...")
-        tts_engine_new.t3.print_trainable_parameters()
     else:
-        # FRESH START PATH: Original initialization logic
+        # FRESH START PATH
         # 2. LOAD ORIGINAL MODEL TEMPORARILY
         logger.info("Loading original model to extract weights...")
         # Loading on CPU first to save VRAM
