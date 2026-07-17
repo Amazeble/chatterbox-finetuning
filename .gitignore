@@ -1,2 +1,47 @@
-*.ipynb_checkpoints
-**/.ipynb_checkpoints/*
+```
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*.ipynb~
+
+# Colab-specific files
+*.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment files
+.env
+.env.local
+*.env.*
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+pip-log.txt
+pipenv.lock
+
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage/
+
+# MyPy cache
+.mypy_cache/
+```
