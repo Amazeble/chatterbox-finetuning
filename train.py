@@ -32,12 +32,18 @@ def parse_args():
         default=None,
         help="Path of checkpoint to resume training from"
     )
+    parser.add_argument(
+        "-p", "--project_name",
+        type=str,
+        default="Elise",
+        help="Project name for organizing datasets and outputs (e.g., 'Elise')"
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    cfg = TrainConfig()
+    cfg = TrainConfig(project_name=args.project_name)
 
     logger.info("--- Starting Chatterbox Finetuning ---")
     logger.info(f"Mode: {'CHATTERBOX-TURBO' if cfg.is_turbo else 'CHATTERBOX-TTS'}")
@@ -67,8 +73,8 @@ def main():
         # then load the adapter weights from 'new_lang_adapter', and let Trainer load optimizer state.
         logger.info(f"Resume mode detected: {args.resume}")
         
-        # 1. Load the saved adapter weights from the dedicated adapter folder
-        adapter_path = os.path.join(output_dir, "new_lang_adapter")
+        # 1. Load the saved adapter weights from the dedicated adapter folder within the project directory
+        adapter_path = os.path.join(cfg.output_dir, "new_lang_adapter")
         if not os.path.exists(adapter_path):
             raise FileNotFoundError(f"Adapter directory not found at {adapter_path}. Cannot resume LoRA training without adapter config.")
         
