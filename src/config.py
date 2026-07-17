@@ -74,6 +74,7 @@ class TrainConfig:
     is_turbo: bool = True  # Set True if you're training Turbo, False if you're training Normal.
     is_lora: bool = True   # True: Efficient LoRA training (Recommended for < 10h data)
                            # False: Full Fine-Tune (High VRAM, for massive datasets)
+    is_merge_lora: bool = True  # If True and is_lora is True, automatically run merge_lora.py after training
 
     lora_r: int = 128
     lora_alpha: int = 256

@@ -1,6 +1,7 @@
 import os
 import sys
 import argparse
+import subprocess
 import torch
 from transformers import Trainer, TrainingArguments
 from safetensors.torch import save_file
@@ -211,6 +212,12 @@ def main():
         tts_engine_new.t3.save_pretrained(save_path)
         logger.info(f"LoRA adapter saved to: {save_path}")
         logger.info("NOTE: This adapter contains both LoRA weights AND the new resized embeddings.")
+        
+        # Auto-merge LoRA weights if is_merge_lora is True
+        if cfg.is_merge_lora:
+            logger.info("is_merge_lora is True. Running merge_lora.py...")
+            subprocess.run([sys.executable, "merge_lora.py"], check=True)
+            logger.info("merge_lora.py completed successfully.")
     else:
         # Save full model weights as safetensors
         filename = "t3_turbo_finetuned.safetensors" if cfg.is_turbo else "t3_finetuned.safetensors"
