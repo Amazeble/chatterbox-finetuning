@@ -30,7 +30,7 @@ class TrainConfig:
     json_format = False # Set True if the dataset format is json, and False if it's file-based or ljspeech.
     preprocess = True # If you've already done preprocessing once, set it to false.
     
-    is_turbo: bool = False # Set True if you're training Turbo, False if you're training Normal.
+    is_turbo: bool = True  # Set True if you're training Turbo, False if you're training Normal.
     is_lora: bool = True   # True: Efficient LoRA training (Recommended for < 10h data)
                            # False: Full Fine-Tune (High VRAM, for massive datasets)
 
@@ -48,8 +48,8 @@ class TrainConfig:
     new_vocab_size: int = 52260 if is_turbo else 2454 
 
     # --- Hyperparameters ---
-    batch_size: int = 32         # Adjust based on VRAM (2, 4, 8)
-    grad_accum: int = 1        # Effective Batch Size = Batch * Accum
+    batch_size: int = 8      # Adjust based on VRAM (2, 4, 8)
+    grad_accum: int = 4       # Effective Batch Size = Batch * Accum
     learning_rate: float = 1e-4 if is_lora else 1e-5  # T3 is sensitive, keep low
     num_epochs: int = 10 if is_lora else 30
     
