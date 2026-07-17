@@ -1,3 +1,5 @@
+--index-url https://download.pytorch.org/whl/cu126
+
 peft==0.17.1
 torch==2.6.0
 torchaudio==2.6.0
