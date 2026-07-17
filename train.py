@@ -1,5 +1,7 @@
 import os
 import sys
+import argparse
+import subprocess
 import torch
 from transformers import Trainer, TrainingArguments
 from safetensors.torch import save_file
@@ -22,8 +24,19 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 logger = setup_logger("ChatterboxFinetune")
 
 
-def main():
+def parse_args():
+    parser = argparse.ArgumentParser(description="Chatterbox Finetuning Script")
+    parser.add_argument(
+        "-r", "--resume",
+        type=str,
+        default=None,
+        help="Path of checkpoint to resume training from"
+    )
+    return parser.parse_args()
 
+
+def main():
+    args = parse_args()
     cfg = TrainConfig()
 
     logger.info("--- Starting Chatterbox Finetuning ---")
@@ -175,6 +188,7 @@ def main():
         gradient_checkpointing=True,  # Reduces VRAM usage by ~60%
         dataloader_persistent_workers=True,
         dataloader_pin_memory=True,
+        resume_from_checkpoint=args.resume,
     )
 
     trainer = Trainer(
@@ -198,6 +212,12 @@ def main():
         tts_engine_new.t3.save_pretrained(save_path)
         logger.info(f"LoRA adapter saved to: {save_path}")
         logger.info("NOTE: This adapter contains both LoRA weights AND the new resized embeddings.")
+        
+        # Auto-merge LoRA weights if is_merge_lora is True
+        if cfg.is_merge_lora:
+            logger.info("is_merge_lora is True. Running merge_lora.py...")
+            subprocess.run([sys.executable, "merge_lora.py"], check=True)
+            logger.info("merge_lora.py completed successfully.")
     else:
         # Save full model weights as safetensors
         filename = "t3_turbo_finetuned.safetensors" if cfg.is_turbo else "t3_finetuned.safetensors"
