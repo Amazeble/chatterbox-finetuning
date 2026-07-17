@@ -1,68 +1,26 @@
-```
-# Python
+*.ipynb_checkpoints/
+.checkpoints/
+*.pyc
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
-venv/
-ENV/
-env.bak/
-.venv/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb
-
-# Environment variables
+*.log
+*.tmp
 .env
 .env.local
 .env.*
-
-# IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-
-# OS generated
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Coverage
-.coverage
+node_modules/
+venv/
+.venv/
+dist/
+build/
+target/
+.gradle/
+.mypy_cache/
+.pytest_cache/
 coverage/
 htmlcov/
-
-# MyPy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# PyTest
-.pytest_cache/
-
-# Compressed files
+.Coverage
 *.zip
 *.gz
 *.tar
@@ -85,4 +43,5 @@ dmypy.json
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-```
+.DS_Store
+Thumbs.db
