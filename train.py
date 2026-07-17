@@ -4,7 +4,7 @@ import torch
 from transformers import Trainer, TrainingArguments
 from safetensors.torch import save_file
 
-from src.config import TrainConfig
+from src.config import TrainConfig, should_run_preprocessing
 from src.dataset import ChatterboxDataset, data_collator_turbo, data_collator_standart
 from src.model import resize_and_load_t3_weights, ChatterboxTrainerWrapper
 from src.preprocess_ljspeech import preprocess_dataset_ljspeech
@@ -126,7 +126,7 @@ def main():
             param.requires_grad = True
 
     # 7. PREPROCESSING
-    if cfg.preprocess:
+    if should_run_preprocessing(cfg):
         logger.info("Initializing Preprocess dataset...")
 
         if cfg.ljspeech:

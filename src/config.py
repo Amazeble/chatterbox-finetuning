@@ -1,5 +1,45 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Literal, Optional
+import os
+import glob
+
+
+def should_run_preprocessing(config) -> bool:
+    """
+    Determine if preprocessing should run based on config.preprocess setting.
+    
+    - If preprocess is True: always run
+    - If preprocess is False: skip
+    - If preprocess is "auto": check if preprocessed_dir exists and has same number of .pt files as .wav files
+    
+    Returns True if preprocessing should run, False otherwise.
+    """
+    if config.preprocess is True:
+        return True
+    elif config.preprocess is False:
+        return False
+    elif config.preprocess == "auto":
+        # Check if preprocessed_dir exists
+        if not os.path.exists(config.preprocessed_dir):
+            return True
+        
+        # Count .wav files in wav_dir
+        wav_files = glob.glob(os.path.join(config.wav_dir, "*.wav"))
+        wav_count = len(wav_files)
+        
+        # Count .pt files in preprocessed_dir
+        pt_files = glob.glob(os.path.join(config.preprocessed_dir, "*.pt"))
+        pt_count = len(pt_files)
+        
+        # If counts don't match, rerun preprocessing
+        if wav_count != pt_count:
+            return True
+        
+        return False
+    
+    # Default to running preprocessing
+    return True
+
 
 @dataclass
 class TrainConfig:
@@ -28,7 +68,8 @@ class TrainConfig:
 
     ljspeech = True # Set True if the dataset format is ljspeech, and False if it's file-based.
     json_format = False # Set True if the dataset format is json, and False if it's file-based or ljspeech.
-    preprocess = True # If you've already done preprocessing once, set it to false.
+    # Preprocessing mode: True (always run), False (skip), "auto" (smart detection)
+    preprocess: Optional[Literal[True, False, "auto"]] = True
     
     is_turbo: bool = True  # Set True if you're training Turbo, False if you're training Normal.
     is_lora: bool = True   # True: Efficient LoRA training (Recommended for < 10h data)
