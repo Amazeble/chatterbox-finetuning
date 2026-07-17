@@ -33,17 +33,30 @@ def parse_args():
         help="Path of checkpoint to resume training from"
     )
     parser.add_argument(
-        "-p", "--project_name",
+        "-d", "--dataset_path",
         type=str,
-        default="Elise",
-        help="Project name for organizing datasets and outputs (e.g., 'Elise')"
+        default="./MyTTSDataset/Elise",
+        help="Path to dataset directory (e.g., 'MyTTSDataset/Elise'). Project name will be extracted from the last folder name."
     )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    cfg = TrainConfig(project_name=args.project_name)
+    
+    # Extract project name from dataset path
+    # e.g., "MyTTSDataset/Elise" -> "Elise"
+    dataset_path = os.path.normpath(args.dataset_path)
+    project_name = os.path.basename(dataset_path)
+    
+    # Validate that the dataset directory exists
+    if not os.path.exists(dataset_path):
+        raise FileNotFoundError(f"Dataset directory not found at: {dataset_path}")
+    
+    logger.info(f"Dataset path: {dataset_path}")
+    logger.info(f"Extracted project name: {project_name}")
+    
+    cfg = TrainConfig(project_name=project_name, base_dataset_dir=os.path.dirname(dataset_path))
 
     logger.info("--- Starting Chatterbox Finetuning ---")
     logger.info(f"Mode: {'CHATTERBOX-TURBO' if cfg.is_turbo else 'CHATTERBOX-TTS'}")
