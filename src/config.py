@@ -64,8 +64,8 @@ class TrainConfig:
     model_dir: str = "./pretrained_models"
     
     # Project name for organizing dataset and outputs (e.g., "Adriene")
-    # Default is "Adriene", change this line directly or via Colab config cell
-    project_name: str = "Adriene"
+    # Value is read from colab_config_override.json if it exists, otherwise uses this default
+    project_name: str = field(default_factory=lambda: _get_field_value("project_name", "Adriene"))
     
     # Base dataset directory - will be combined with project_name
     base_dataset_dir: str = "./MyTTSDataset"
