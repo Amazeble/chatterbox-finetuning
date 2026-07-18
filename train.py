@@ -35,8 +35,8 @@ def parse_args():
     parser.add_argument(
         "-d", "--dataset_path",
         type=str,
-        default="./MyTTSDataset/Elise",
-        help="Path to dataset directory (e.g., 'MyTTSDataset/Elise'). Project name will be extracted from the last folder name."
+        default="./MyTTSDataset/<project_name>",
+        help="Path to dataset directory (e.g., 'MyTTSDataset/<project_name>'). Project name will be extracted from the last folder name."
     )
     return parser.parse_args()
 
@@ -45,7 +45,7 @@ def main():
     args = parse_args()
     
     # Extract project name from dataset path
-    # e.g., "MyTTSDataset/Elise" -> "Elise"
+    # e.g., "MyTTSDataset/<project_name>" -> "<project_name>"
     dataset_path = os.path.normpath(args.dataset_path)
     project_name = os.path.basename(dataset_path)
     

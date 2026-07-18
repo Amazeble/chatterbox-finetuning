@@ -47,8 +47,8 @@ class TrainConfig:
     # Directory where setup.py downloaded the files
     model_dir: str = "./pretrained_models"
     
-    # Project name for organizing dataset and outputs (e.g., "Elise")
-    project_name: str = "Elise"
+    # Project name for organizing dataset and outputs (e.g., "<project_name>")
+    project_name: str = "<project_name>"
     
     # Base dataset directory - will be combined with project_name
     base_dataset_dir: str = "./MyTTSDataset"
