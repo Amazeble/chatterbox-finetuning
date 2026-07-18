@@ -8,7 +8,7 @@ from src.chatterbox_.tts_turbo import ChatterboxTurboTTS
 from src.chatterbox_.tts import ChatterboxTTS, punc_norm
 from src.chatterbox_.models.s3tokenizer import S3_SR
 from src.utils import setup_logger
-from train import TrainConfig
+from src.config import TrainConfig
 
 
 logger = setup_logger(__name__)
