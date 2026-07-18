@@ -1,7 +1,5 @@
 import os
 import sys
-import argparse
-import subprocess
 import torch
 from dataclasses import dataclass, field
 from typing import List, Literal, Optional
@@ -9,6 +7,7 @@ import glob
 from transformers import Trainer, TrainingArguments
 from safetensors.torch import save_file
 
+from src.config import TrainConfig
 from src.dataset import ChatterboxDataset, data_collator_turbo, data_collator_standart
 from src.model import resize_and_load_t3_weights, ChatterboxTrainerWrapper
 from src.preprocess_ljspeech import preprocess_dataset_ljspeech
@@ -159,13 +158,8 @@ def parse_args():
 
 
 def main():
-    args = parse_args()
-    
-    # Initialize config with default project name and base dataset directory
+
     cfg = TrainConfig()
-    
-    logger.info(f"Dataset path: {os.path.join(cfg.base_dataset_dir, cfg.project_name)}")
-    logger.info(f"Project name: {cfg.project_name}")
 
     logger.info("--- Starting Chatterbox Finetuning ---")
     logger.info(f"Mode: {'CHATTERBOX-TURBO' if cfg.is_turbo else 'CHATTERBOX-TTS'}")
@@ -187,171 +181,87 @@ def main():
     logger.info(f"Device: {device}")
     logger.info(f"Model Directory: {cfg.model_dir}")
 
-    # Check if we are resuming from a checkpoint
-    is_resuming = args.resume is not None
+    # 2. LOAD ORIGINAL MODEL TEMPORARILY
+    logger.info("Loading original model to extract weights...")
+    # Loading on CPU first to save VRAM
+    tts_engine_original = EngineClass.from_local(cfg.model_dir, device="cpu")
 
-    if is_resuming:
-        # RESUME PATH: Initialize model architecture exactly as in fresh start,
-        # then load the adapter weights from 'new_lang_adapter', and let Trainer load optimizer state.
-        logger.info(f"Resume mode detected: {args.resume}")
-        
-        # 1. Load the saved adapter weights from the dedicated adapter folder within the project directory
-        adapter_path = os.path.join(cfg.output_dir, "new_lang_adapter")
-        if not os.path.exists(adapter_path):
-            raise FileNotFoundError(f"Adapter directory not found at {adapter_path}. Cannot resume LoRA training without adapter config.")
-        
-        logger.info(f"Loading adapter structure and weights from: {adapter_path}")
-        
-        # --- Copy of Fresh Start Initialization Logic ---
-        logger.info("Loading original model to extract weights (for architecture)...")
-        tts_engine_original = EngineClass.from_local(cfg.model_dir, device="cpu")
-        pretrained_t3_state_dict = tts_engine_original.t3.state_dict()
-        original_t3_config = tts_engine_original.t3.hp
+    pretrained_t3_state_dict = tts_engine_original.t3.state_dict()
+    original_t3_config = tts_engine_original.t3.hp
 
-        logger.info(f"Creating new T3 model with vocab size: {cfg.new_vocab_size}")
-        new_t3_config = original_t3_config
-        new_t3_config.text_tokens_dict_size = cfg.new_vocab_size
-        if hasattr(new_t3_config, "use_cache"):
-            new_t3_config.use_cache = False
-        else:
-            setattr(new_t3_config, "use_cache", False)
+    # 3. CREATE NEW T3 MODEL WITH NEW VOCAB SIZE
+    logger.info(f"Creating new T3 model with vocab size: {cfg.new_vocab_size}")
 
-        new_t3_model = T3(hp=new_t3_config)
-        logger.info("Transferring weights...")
-        new_t3_model = resize_and_load_t3_weights(new_t3_model, pretrained_t3_state_dict)
+    new_t3_config = original_t3_config
+    new_t3_config.text_tokens_dict_size = cfg.new_vocab_size
 
-        if cfg.is_turbo:
-            logger.info("Turbo Mode: Removing backbone WTE layer...")
-            if hasattr(new_t3_model.tfmr, "wte"):
-                del new_t3_model.tfmr.wte
-
-        del tts_engine_original
-        del pretrained_t3_state_dict
-
-        tts_engine_new = EngineClass.from_local(cfg.model_dir, device="cpu")
-        tts_engine_new.t3 = new_t3_model
-
-        logger.info("Freezing S3Gen and VoiceEncoder...")
-        for param in tts_engine_new.ve.parameters():
-            param.requires_grad = False
-        for param in tts_engine_new.s3gen.parameters():
-            param.requires_grad = False
-
-        if cfg.is_lora:
-            logger.info("Applying LoRA configuration...")
-            for param in tts_engine_new.t3.parameters():
-                param.requires_grad = False
-            
-            from peft import LoraConfig, get_peft_model
-            logger.info(f"LoRA Target Modules: {cfg.lora_target_modules}")
-            logger.info(f"Modules to Full Train (Embeddings): {cfg.lora_modules_to_save}")
-
-            peft_config = LoraConfig(
-                r=cfg.lora_r,
-                lora_alpha=cfg.lora_alpha,
-                target_modules=cfg.turbo_lora_target_modules if cfg.is_turbo else cfg.lora_target_modules,
-                lora_dropout=0.05,
-                bias="none",
-                modules_to_save=cfg.lora_modules_to_save,
-            )
-            tts_engine_new.t3 = get_peft_model(tts_engine_new.t3, peft_config)
-            
-            # NOW load the saved adapter weights on top of the initialized structure
-            logger.info(f"Loading saved adapter weights from: {adapter_path}")
-            tts_engine_new.t3.load_adapter(adapter_path)
-            logger.info("Adapter weights loaded successfully.")
-        else:
-            logger.info("Full fine-tune: enabling all T3 parameters...")
-            tts_engine_new.t3.train()
-            for param in tts_engine_new.t3.parameters():
-                param.requires_grad = True
-        # -----------------------------------------------
-        
-        logger.info("Model architecture initialized with checkpoint weights. Trainer will now load optimizer/scheduler state.")
-        
+    # Prevent caching during training
+    if hasattr(new_t3_config, "use_cache"):
+        new_t3_config.use_cache = False
     else:
-        # FRESH START PATH
-        # 2. LOAD ORIGINAL MODEL TEMPORARILY
-        logger.info("Loading original model to extract weights...")
-        # Loading on CPU first to save VRAM
-        tts_engine_original = EngineClass.from_local(cfg.model_dir, device="cpu")
+        setattr(new_t3_config, "use_cache", False)
 
-        pretrained_t3_state_dict = tts_engine_original.t3.state_dict()
-        original_t3_config = tts_engine_original.t3.hp
+    new_t3_model = T3(hp=new_t3_config)
 
-        # 3. CREATE NEW T3 MODEL WITH NEW VOCAB SIZE
-        logger.info(f"Creating new T3 model with vocab size: {cfg.new_vocab_size}")
+    # 4. TRANSFER WEIGHTS
+    logger.info("Transferring weights...")
+    new_t3_model = resize_and_load_t3_weights(new_t3_model, pretrained_t3_state_dict)
 
-        new_t3_config = original_t3_config
-        new_t3_config.text_tokens_dict_size = cfg.new_vocab_size
+    if cfg.is_turbo:
+        logger.info("Turbo Mode: Removing backbone WTE layer...")
+        if hasattr(new_t3_model.tfmr, "wte"):
+            del new_t3_model.tfmr.wte
 
-        # Prevent caching during training
-        if hasattr(new_t3_config, "use_cache"):
-            new_t3_config.use_cache = False
-        else:
-            setattr(new_t3_config, "use_cache", False)
+    # Clean up memory
+    del tts_engine_original
+    del pretrained_t3_state_dict
 
-        new_t3_model = T3(hp=new_t3_config)
+    # 5. PREPARE ENGINE FOR TRAINING
+    tts_engine_new = EngineClass.from_local(cfg.model_dir, device="cpu")
+    tts_engine_new.t3 = new_t3_model
 
-        # 4. TRANSFER WEIGHTS
-        logger.info("Transferring weights...")
-        new_t3_model = resize_and_load_t3_weights(new_t3_model, pretrained_t3_state_dict)
+    logger.info("Freezing S3Gen and VoiceEncoder...")
+    for param in tts_engine_new.ve.parameters():
+        param.requires_grad = False
 
-        if cfg.is_turbo:
-            logger.info("Turbo Mode: Removing backbone WTE layer...")
-            if hasattr(new_t3_model.tfmr, "wte"):
-                del new_t3_model.tfmr.wte
+    for param in tts_engine_new.s3gen.parameters():
+        param.requires_grad = False
 
-        # Clean up memory
-        del tts_engine_original
-        del pretrained_t3_state_dict
+    # 6. APPLY LORA OR FULL FINE-TUNE
+    if cfg.is_lora:
+        # --- LoRA PATH ---
+        logger.info("Applying LoRA configuration...")
 
-        # 5. PREPARE ENGINE FOR TRAINING
-        tts_engine_new = EngineClass.from_local(cfg.model_dir, device="cpu")
-        tts_engine_new.t3 = new_t3_model
-
-        logger.info("Freezing S3Gen and VoiceEncoder...")
-        for param in tts_engine_new.ve.parameters():
+        for param in tts_engine_new.t3.parameters():
             param.requires_grad = False
-
-        for param in tts_engine_new.s3gen.parameters():
-            param.requires_grad = False
-
-        # 6. APPLY LORA OR FULL FINE-TUNE
-        if cfg.is_lora:
-            # --- LoRA PATH ---
-            logger.info("Applying LoRA configuration...")
-
-            for param in tts_engine_new.t3.parameters():
-                param.requires_grad = False
-                
-            from peft import LoraConfig, get_peft_model
-
-            logger.info(f"LoRA Target Modules: {cfg.lora_target_modules}")
-            logger.info(f"Modules to Full Train (Embeddings): {cfg.lora_modules_to_save}")
-
-            peft_config = LoraConfig(
-                r=cfg.lora_r,
-                lora_alpha=cfg.lora_alpha,
-                target_modules=cfg.turbo_lora_target_modules if cfg.is_turbo else cfg.lora_target_modules,
-                lora_dropout=0.05,
-                bias="none",
-                modules_to_save=cfg.lora_modules_to_save,
-            )
-
-            tts_engine_new.t3 = get_peft_model(tts_engine_new.t3, peft_config)
-            tts_engine_new.t3.print_trainable_parameters()
             
+        from peft import LoraConfig, get_peft_model
 
-        else:
-            # --- FULL FINE-TUNE PATH ---
-            logger.info("Full fine-tune: enabling all T3 parameters...")
-            tts_engine_new.t3.train()
-            for param in tts_engine_new.t3.parameters():
-                param.requires_grad = True
+        logger.info(f"LoRA Target Modules: {cfg.lora_target_modules}")
+        logger.info(f"Modules to Full Train (Embeddings): {cfg.lora_modules_to_save}")
+
+        peft_config = LoraConfig(
+            r=cfg.lora_r,
+            lora_alpha=cfg.lora_alpha,
+            target_modules=cfg.turbo_lora_target_modules if cfg.is_turbo else cfg.lora_target_modules,
+            lora_dropout=0.05,
+            bias="none",
+            modules_to_save=cfg.lora_modules_to_save,
+        )
+
+        tts_engine_new.t3 = get_peft_model(tts_engine_new.t3, peft_config)
+        tts_engine_new.t3.print_trainable_parameters()
+        
+
+    else:
+        # --- FULL FINE-TUNE PATH ---
+        logger.info("Full fine-tune: enabling all T3 parameters...")
+        tts_engine_new.t3.train()
+        for param in tts_engine_new.t3.parameters():
+            param.requires_grad = True
 
     # 7. PREPROCESSING
-    if should_run_preprocessing(cfg):
+    if cfg.preprocess:
         logger.info("Initializing Preprocess dataset...")
 
         if cfg.ljspeech:
@@ -400,7 +310,6 @@ def main():
         gradient_checkpointing=True,  # Reduces VRAM usage by ~60%
         dataloader_persistent_workers=True,
         dataloader_pin_memory=True,
-        resume_from_checkpoint=args.resume,
     )
 
     trainer = Trainer(
@@ -424,12 +333,6 @@ def main():
         tts_engine_new.t3.save_pretrained(save_path)
         logger.info(f"LoRA adapter saved to: {save_path}")
         logger.info("NOTE: This adapter contains both LoRA weights AND the new resized embeddings.")
-        
-        # Auto-merge LoRA weights if is_merge_lora is True
-        if cfg.is_merge_lora:
-            logger.info("is_merge_lora is True. Running merge_lora.py...")
-            subprocess.run([sys.executable, "merge_lora.py"], check=True)
-            logger.info("merge_lora.py completed successfully.")
     else:
         # Save full model weights as safetensors
         filename = "t3_turbo_finetuned.safetensors" if cfg.is_turbo else "t3_finetuned.safetensors"
