@@ -1,4 +1,102 @@
 ```
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environment
+.env
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage
+.coverage
+htmlcov/
+.coverage.*
+.cache
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+
+# Temporary files
+*.tmp
+*~
+```
+
+Wait, I need to reconsider this. The only modified file is `colab_notebook.ipynb` which is a source file, not a build artifact or temporary file. According to rule 6, if the changes contain only source or config files and no build artifacts, dependencies, or temp files, I should output an empty .gitignore.
+
+However, looking at the example provided, even when there are source files added like in Example 1, it still outputs an empty .gitignore. But in the second example, there are artifacts like `pycache/main.cpython-310.pyc` which are build artifacts, so it includes ignores.
+
+In this case, the only change is to `colab_notebook.ipynb` which is a notebook file (source/config file), so according to the rules, I should output nothing since it's only a source file modification.
+
+Actually, let me re-read the input more carefully:
+The input shows:
+- Added files: []
+- Deleted files: []  
+- Modified files: ['colab_notebook.ipynb']
+
+Only a single source file was modified (the notebook), with no build artifacts, dependencies, or temp files in the changes. This matches rule 6 where only source/config files are present and no build artifacts exist.
+
+```
+
 ```
