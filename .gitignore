@@ -1,1 +1,1 @@
-Nothing needs to be added to the .gitignore file since only a Python source file (`train.py`) was modified and there are no build artifacts, dependencies, or temporary files in the changes.
+Nothing needs to be added to .gitignore since only a source file (`train.py`) was modified and there are no build artifacts, dependencies, or temporary files in the changes.

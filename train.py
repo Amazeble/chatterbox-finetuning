@@ -38,12 +38,6 @@ def parse_args():
         default="",
         help="Project name for organizing dataset and outputs"
     )
-    parser.add_argument(
-        "--input_file_path",
-        type=str,
-        default="",
-        help="Path to input audio file for file-based datasets"
-    )
     return parser.parse_args()
 
 
@@ -54,9 +48,6 @@ def main():
     config_kwargs = {}
     if args.project_name:
         config_kwargs["project_name"] = args.project_name
-    if args.input_file_path:
-        # Store in environment for preprocess scripts to access
-        os.environ["INPUT_FILE_PATH"] = args.input_file_path
     
     cfg = TrainConfig(**config_kwargs)
 
