@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument(
         "--project_name",
         type=str,
-        default="<project_name>",
+        default="",
         help="Project name for organizing dataset and outputs"
     )
     parser.add_argument(
@@ -52,7 +52,7 @@ def main():
     
     # Override config with command-line arguments if provided
     config_kwargs = {}
-    if args.project_name and args.project_name != "<project_name>":
+    if args.project_name:
         config_kwargs["project_name"] = args.project_name
     if args.input_file_path:
         # Store in environment for preprocess scripts to access
