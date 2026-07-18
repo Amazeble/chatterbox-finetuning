@@ -8,7 +8,7 @@ from safetensors.torch import load_file
 
 from src.model import resize_and_load_t3_weights
 from src.utils import setup_logger, trim_silence_with_vad
-from src.config import TrainConfig
+from train import TrainConfig
 from src.chatterbox_.tts import ChatterboxTTS
 from src.chatterbox_.tts_turbo import ChatterboxTurboTTS
 from src.chatterbox_.models.t3.t3 import T3

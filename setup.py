@@ -4,7 +4,7 @@ import sys
 import json
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from src.config import TrainConfig
+from train import TrainConfig
 
 
 DEST_DIR = "pretrained_models"

@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from src.chatterbox_.models.t3.modules.cond_enc import T3Cond
-from src.config import TrainConfig
+from train import TrainConfig
 from src.utils import setup_logger
 
 

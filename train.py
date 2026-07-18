@@ -4,10 +4,10 @@ import torch
 from dataclasses import dataclass, field
 from typing import List, Literal, Optional
 import glob
+import argparse
 from transformers import Trainer, TrainingArguments
 from safetensors.torch import save_file
 
-from src.config import TrainConfig
 from src.dataset import ChatterboxDataset, data_collator_turbo, data_collator_standart
 from src.model import resize_and_load_t3_weights, ChatterboxTrainerWrapper
 from src.preprocess_ljspeech import preprocess_dataset_ljspeech
