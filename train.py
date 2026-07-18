@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 import subprocess
+import json
 import torch
 from transformers import Trainer, TrainingArguments
 from safetensors.torch import save_file
@@ -36,16 +37,33 @@ def parse_args():
         "--project_name",
         type=str,
         default=None,
-        help="Project name for organizing dataset and outputs (defaults to value in config.py)"
+        help="Project name for organizing dataset and outputs"
     )
     return parser.parse_args()
+
+
+def load_config_from_json(config_path="config.json"):
+    """Load config values from JSON file if it exists."""
+    if os.path.exists(config_path):
+        with open(config_path, "r") as f:
+            return json.load(f)
+    return {}
 
 
 def main():
     args = parse_args()
     
-    # Override config with command-line arguments if provided
+    # Load saved config from JSON if available
+    saved_config = load_config_from_json()
+    
+    # Build config kwargs with priority: CLI args > saved JSON > defaults
     config_kwargs = {}
+    
+    # Load project_name from saved config first
+    if saved_config.get("project_name"):
+        config_kwargs["project_name"] = saved_config["project_name"]
+    
+    # Override with CLI argument if provided
     if args.project_name is not None and args.project_name != "":
         config_kwargs["project_name"] = args.project_name
     
@@ -53,7 +71,7 @@ def main():
     
     # Validate that project_name is set
     if not cfg.project_name:
-        logger.error("project_name is not set! Please provide it via --project_name argument.")
+        logger.error("project_name is not set! Please provide it via --project_name argument or ensure config.json contains a valid project_name.")
         sys.exit(1)
 
     # 0. CHECK MODEL FILES
