@@ -1,1 +1,35 @@
-Nothing should be ignored since only a source file (`train.py`) was modified and there are no build artifacts, dependencies, or temporary files in the changes.
+```gitignore
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Dependencies
+.venv/
+venv/
+env/
+.env
+.env.local
+.env.*
+
+# Logs
+*.log
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Build
+dist/
+build/
+*.egg-info/
+```
