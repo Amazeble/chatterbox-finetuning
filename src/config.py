@@ -2,6 +2,22 @@ from dataclasses import dataclass, field
 from typing import List, Literal, Optional
 import os
 import glob
+import json
+
+# Path to a temporary override file created by Colab notebooks
+_OVERRIDE_FILE = "colab_config_override.json"
+
+def _get_field_value(key: str, default):
+    """Helper to get value from override file or return default."""
+    if os.path.exists(_OVERRIDE_FILE):
+        try:
+            with open(_OVERRIDE_FILE, 'r') as f:
+                overrides = json.load(f)
+                if key in overrides and overrides[key] is not None:
+                    return overrides[key]
+        except Exception:
+            pass
+    return default
 
 
 def should_run_preprocessing(config) -> bool:
@@ -48,8 +64,8 @@ class TrainConfig:
     model_dir: str = "./pretrained_models"
     
     # Project name for organizing dataset and outputs (e.g., "Adriene")
-    # MUST be set by user - no default value
-    project_name: str = field(default=None)
+    # Default is "Adriene", change this line directly or via Colab config cell
+    project_name: str = "Adriene"
     
     # Base dataset directory - will be combined with project_name
     base_dataset_dir: str = "./MyTTSDataset"
