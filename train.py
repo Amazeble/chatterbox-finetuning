@@ -35,8 +35,8 @@ def parse_args():
     parser.add_argument(
         "--project_name",
         type=str,
-        default="",
-        help="Project name for organizing dataset and outputs"
+        default=None,
+        help="Project name for organizing dataset and outputs (defaults to value in config.py)"
     )
     return parser.parse_args()
 
@@ -46,7 +46,7 @@ def main():
     
     # Override config with command-line arguments if provided
     config_kwargs = {}
-    if args.project_name:
+    if args.project_name is not None:
         config_kwargs["project_name"] = args.project_name
     
     cfg = TrainConfig(**config_kwargs)
