@@ -17,7 +17,19 @@ def _get_field_value(key: str, default):
                     return overrides[key]
         except Exception:
             pass
-    return default
+    # Return None if no override found - let the caller handle missing values
+    return None
+
+
+def _require_field_value(key: str):
+    """Helper to get value from override file, raise error if not found."""
+    value = _get_field_value(key, None)
+    if value is None:
+        raise ValueError(
+            f"{key} is not set. Please run the Colab configuration cell first "
+            f"to set {key}, or ensure colab_config_override.json exists with a valid value."
+        )
+    return value
 
 
 def should_run_preprocessing(config) -> bool:
@@ -64,8 +76,8 @@ class TrainConfig:
     model_dir: str = "./pretrained_models"
     
     # Project name for organizing dataset and outputs (e.g., "Adriene")
-    # Value is read from colab_config_override.json if it exists, otherwise uses this default
-    project_name: str = field(default_factory=lambda: _get_field_value("project_name", "Adriene"))
+    # Value MUST be set via colab_config_override.json (created by running the Colab config cell)
+    project_name: str = field(default_factory=lambda: _require_field_value("project_name"))
     
     # Base dataset directory - will be combined with project_name
     base_dataset_dir: str = "./MyTTSDataset"
