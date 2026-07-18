@@ -1,53 +1,31 @@
 ```
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-*/.ipynb_checkpoints/*
-
 # Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-*.so
-*.egg-info/
-.eggs/
 
-# Virtual environments
-venv/
-.venv/
-env/
-.env/
-.ENV/
+# Logs and temp files
+*.log
+*.tmp
+*.swp
 
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Environment
+.env
+.env.local
+*.env.*
 
-# IDE
+# Editors
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# OS
-.DS_Store
-Thumbs.db
+# Dependencies
+.venv/
+venv/
+node_modules/
 
-# Logs
-*.log
-
-# Coverage
-.coverage
-coverage/
-htmlcov/
-.coverage.*
-
-# Distribution
+# Build artifacts
 dist/
 build/
-*.egg
-*.whl
+target/
 ```
