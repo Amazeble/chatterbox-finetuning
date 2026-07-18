@@ -1,29 +1,33 @@
 ```
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
-*.ipynb_checkpoints/*
-
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
 
 # Environment variables
 .env
 .env.local
-.env.*
+*.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.ENV
+.python-version
 
 # Logs
 *.log
 
-# Coverage reports
-.coverage
-coverage/
-htmlcov/
-
-# Temporary files
-*.tmp
-*.swp
-*~
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```
