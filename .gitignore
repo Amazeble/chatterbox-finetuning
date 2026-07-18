@@ -1,55 +1,29 @@
 ```
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
+*.ipynb_checkpoints/*
 
-# Colab-specific files
-.google/
-
-# Python
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-env/
-venv/
-.venv/
-.ENV
-.venv.bak/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.pytest_cache/
-.mypy_cache/
-.hypothesis/
 
 # Environment variables
 .env
-.venv
-.envrc
+.env.local
 .env.*
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Logs
+*.log
 
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Icon?
+# Coverage reports
+.coverage
+coverage/
+htmlcov/
+
+# Temporary files
+*.tmp
+*.swp
+*~
 ```
