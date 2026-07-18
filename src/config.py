@@ -82,7 +82,7 @@ class TrainConfig:
     is_turbo: bool = True  # Set True if you're training Turbo, False if you're training Normal.
     is_lora: bool = True   # True: Efficient LoRA training (Recommended for < 10h data)
                            # False: Full Fine-Tune (High VRAM, for massive datasets)
-    is_merge_lora: bool = True  # If True and is_lora is True, automatically run merge_lora.py after training
+    is_merge_lora: bool = False  # If True and is_lora is True, automatically run merge_lora.py after training
 
     lora_r: int = 128
     lora_alpha: int = 256
@@ -101,10 +101,10 @@ class TrainConfig:
     batch_size: int = 8      # Adjust based on VRAM (2, 4, 8)
     grad_accum: int = 4       # Effective Batch Size = Batch * Accum
     learning_rate: float = 1e-4 if is_lora else 1e-5  # T3 is sensitive, keep low
-    num_epochs: int = 10 if is_lora else 30
+    num_epochs: int = 15 if is_lora else 30
     
     save_steps: int = 500
-    save_total_limit: int = 5
+    save_total_limit: int = 2
     dataloader_num_workers: int = 8
 
     # --- Constraints ---
