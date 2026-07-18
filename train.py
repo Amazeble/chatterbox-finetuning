@@ -46,10 +46,15 @@ def main():
     
     # Override config with command-line arguments if provided
     config_kwargs = {}
-    if args.project_name is not None:
+    if args.project_name is not None and args.project_name != "":
         config_kwargs["project_name"] = args.project_name
     
     cfg = TrainConfig(**config_kwargs)
+    
+    # Validate that project_name is set
+    if not cfg.project_name:
+        logger.error("project_name is not set! Please provide it via --project_name argument.")
+        sys.exit(1)
 
     # 0. CHECK MODEL FILES
     mode_check = "chatterbox_turbo" if cfg.is_turbo else "chatterbox"
