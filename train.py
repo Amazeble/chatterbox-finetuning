@@ -32,13 +32,33 @@ def parse_args():
         default=None,
         help="Path of checkpoint to resume training from"
     )
+    parser.add_argument(
+        "--project_name",
+        type=str,
+        default="<project_name>",
+        help="Project name for organizing dataset and outputs"
+    )
+    parser.add_argument(
+        "--input_file_path",
+        type=str,
+        default="",
+        help="Path to input audio file for file-based datasets"
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     
-    cfg = TrainConfig()
+    # Override config with command-line arguments if provided
+    config_kwargs = {}
+    if args.project_name and args.project_name != "<project_name>":
+        config_kwargs["project_name"] = args.project_name
+    if args.input_file_path:
+        # Store in environment for preprocess scripts to access
+        os.environ["INPUT_FILE_PATH"] = args.input_file_path
+    
+    cfg = TrainConfig(**config_kwargs)
 
     # 0. CHECK MODEL FILES
     mode_check = "chatterbox_turbo" if cfg.is_turbo else "chatterbox"
