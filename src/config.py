@@ -81,10 +81,10 @@ class TrainConfig:
     model_dir: str = "./pretrained_models"
     
     # Base dataset directory - will be combined with project_name if project_name is not empty
-    base_dataset_dir: str = "./MyTTSDataset"
+    base_dataset_dir: str = "/content/drive/MyDrive/Chatterbox/MyTTSDataset"
     
     # Base output directory - will be combined with project_name
-    base_output_dir: str = "./chatterbox_output"
+    base_output_dir: str = "/content/drive/MyDrive/Chatterbox/chatterbox_output"
     
     # Project name for organizing dataset and outputs (e.g., "Adriene")
     # Value MUST be set via colab_config_override.json (created by running the Colab config cell)
@@ -135,14 +135,14 @@ class TrainConfig:
     new_vocab_size: int = field(default_factory=lambda: _get_field_value("new_vocab_size", 52260 if _get_field_value("is_turbo", True) else 2454))
 
     # --- Hyperparameters ---
-    batch_size: int = field(default_factory=lambda: _get_field_value("batch_size", 8))      # Adjust based on VRAM (2, 4, 8)
+    batch_size: int = field(default_factory=lambda: _get_field_value("batch_size", 32))      # Adjust based on VRAM (2, 4, 8)
     grad_accum: int = field(default_factory=lambda: _get_field_value("grad_accum", 4))       # Effective Batch Size = Batch * Accum
     learning_rate: float = field(default_factory=lambda: _get_field_value("learning_rate", 0.0001 if _get_field_value("is_lora", True) else 0.00001))  # T3 is sensitive, keep low
     num_epochs: int = field(default_factory=lambda: _get_field_value("num_epochs", 10 if _get_field_value("is_lora", True) else 30))
     
     save_steps: int = field(default_factory=lambda: _get_field_value("save_steps", 500))
-    save_total_limit: int = field(default_factory=lambda: _get_field_value("save_total_limit", 5))
-    dataloader_num_workers: int = field(default_factory=lambda: _get_field_value("dataloader_num_workers", 8))
+    save_total_limit: int = field(default_factory=lambda: _get_field_value("save_total_limit", 2))
+    dataloader_num_workers: int = field(default_factory=lambda: _get_field_value("dataloader_num_workers", 2))
 
     # --- Constraints ---
     start_text_token = 255
