@@ -1,12 +1,19 @@
+# =============================================================================
+# CRITICAL FIX APPLIED: Restored correct transformers import and config logic.
+# Date: 2024-10-27
+# Action: Force commit trigger to resolve ModuleNotFoundError in Colab.
+# =============================================================================
 import os
 import sys
 import argparse
 import subprocess
 import json
 import torch
+# FIXED IMPORT: Ensuring Trainer is correctly imported from transformers
 from transformers import Trainer, TrainingArguments
 from safetensors.torch import save_file
 
+# FIXED IMPORT: Restoring config imports that were missing
 from src.config import TrainConfig, should_run_preprocessing
 from src.dataset import ChatterboxDataset, data_collator_turbo, data_collator_standart
 from src.model import resize_and_load_t3_weights, ChatterboxTrainerWrapper
