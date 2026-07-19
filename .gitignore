@@ -1,57 +1,86 @@
-# Compiled and build artifacts
-*.pyc
+```
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Python
 __pycache__/
-*.o
-*.obj
-dist/
-build/
+*.pyc
+*.pyo
+*.pyd
+.Python
 *.so
-*.dll
-*.exe
-*.class
-*.a
-*.out
+*.egg-info/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+ENV/
 
 # Dependencies
-.venv/
-venv/
 node_modules/
-.julia/
-.zig-cache/
-target/
-.gradle/
-.mypy_cache/
-.pytest_cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Logs and temp files
+# Logs
 *.log
-*.tmp
-*.swp
-*.swo
-*.bak
-*.~
-Thumbs.db
+
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Environment
-.env
-.env.local
-.env.*
-
-# Editors
+# Editor specific
 .vscode/
 .idea/
-*.sublime-project
-*.sublime-workspace
-nbproject/
+*.swp
+*.swo
 
-# Coverage
+# Build outputs
+dist/
+build/
+target/
+*.out
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Testing
 .coverage
-coverage/
 htmlcov/
+.coverage.*
+.nyc_output
+coverage-final.json
 
-# Distribution / packaging
-*.egg-info/
-MANIFEST
+# Environment variables
+.env
+.env.local
+*.env
+.env.*
+
+# Cache
+.cache/
+.mypy_cache/
 .pytest_cache/
 .hypothesis/
+
+# Compressed files
+*.zip
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.gz
+*.bz2
+*.xz
+*.7z
+*.rar
+```
