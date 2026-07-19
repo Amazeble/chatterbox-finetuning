@@ -79,25 +79,27 @@ def load_config_from_json(config_path="config.json"):
 def main():
     args = parse_args()
     
-    # Load saved config from JSON if available
-    saved_config = load_config_from_json()
-    
-    # Build config kwargs with priority: CLI args > saved JSON > defaults
-    config_kwargs = {}
-    
-    # Load project_name from saved config first
-    if saved_config.get("project_name"):
-        config_kwargs["project_name"] = saved_config["project_name"]
-    
-    # Override with CLI argument if provided
+    # Create/update colab_config_override.json if project_name is provided via CLI
     if args.project_name is not None and args.project_name != "":
-        config_kwargs["project_name"] = args.project_name
+        override_file = "colab_config_override.json"
+        overrides = {}
+        if os.path.exists(override_file):
+            try:
+                with open(override_file, 'r') as f:
+                    overrides = json.load(f)
+            except Exception:
+                pass
+        overrides["project_name"] = args.project_name
+        with open(override_file, 'w') as f:
+            json.dump(overrides, f, indent=2)
+        logger.info(f"Updated {override_file} with project_name: {args.project_name}")
     
-    cfg = TrainConfig(**config_kwargs)
+    # Initialize config - TrainConfig will read from colab_config_override.json automatically
+    cfg = TrainConfig()
     
     # Validate that project_name is set
     if not cfg.project_name:
-        logger.error("project_name is not set! Please provide it via --project_name argument or ensure config.json contains a valid project_name.")
+        logger.error("project_name is not set! Please provide it via --project_name argument or ensure colab_config_override.json contains a valid project_name.")
         sys.exit(1)
 
     # 0. CHECK MODEL FILES
