@@ -1,12 +1,22 @@
 import sys
 import pkgutil
+from importlib.machinery import FileFinder
+
+# Fix 1: Handle missing ImpImporter
+if not hasattr(pkgutil, 'ImpImporter'):
+    class DummyImpImporter: pass
+    pkgutil.ImpImporter = DummyImpImporter
+
+# Fix 2: Handle missing find_module on FileFinder
+if not hasattr(FileFinder, 'find_module'):
+    def dummy_find_module(self, fullname):
+        return None
+    FileFinder.find_module = dummy_find_module
+
+import sys
 from importlib.machinery import FileFinder  # <-- 1. Add this import
 
-# 1st Fix: Fake the missing ImpImporter class
-if not hasattr(pkgutil, 'ImpImporter'):
-    class DummyImpImporter:
-        pass
-    pkgutil.ImpImporter = DummyImpImporter
+pass
 
 # 2nd Fix: Fake the missing find_module method on FileFinder (ADD THIS BLOCK NOW)
 if not hasattr(FileFinder, 'find_module'):
