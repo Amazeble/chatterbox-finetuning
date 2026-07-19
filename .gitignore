@@ -1,40 +1,62 @@
 ```
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+*.py[cod]
+*$py.class
 *.so
-.coverage
-coverage/
-htmlcov/
-.pytest_cache/
-.mypy_cache/
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Virtual environments
 venv/
+env/
+ENV/
 .venv/
+.env/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+
+# Environment variables
 .env
 .env.local
-*.env.*
+.env.*
+!env.sample
 
-# Build artifacts
-build/
-dist/
-*.egg-info/
-
-# Logs
-*.log
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Editors
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```
