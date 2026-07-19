@@ -80,7 +80,7 @@ class TrainConfig:
     # Directory where setup.py downloaded the files
     model_dir: str = "./pretrained_models"
     
-    # Base dataset directory - will be combined with project_name
+    # Base dataset directory - will be combined with project_name if project_name is not empty
     base_dataset_dir: str = "./MyTTSDataset"
     
     # Base output directory - will be combined with project_name
@@ -88,14 +88,17 @@ class TrainConfig:
     
     # Project name for organizing dataset and outputs (e.g., "Adriene")
     # Value MUST be set via colab_config_override.json (created by running the Colab config cell)
-    project_name: str = field(default_factory=lambda: _require_field_value("project_name"))
+    # If empty, paths will use base_dataset_dir directly without subfolder
+    project_name: str = field(default_factory=lambda: _get_field_value("project_name", ""))
     
     # Path to your metadata CSV (Format: ID|RawText|NormText)
-    # Will be resolved as {base_dataset_dir}/{project_name}/metadata.csv
+    # Will be resolved as {base_dataset_dir}/{project_name}/metadata.csv if project_name is not empty
+    # Otherwise resolved as {base_dataset_dir}/metadata.csv
     csv_path: str = None  # Set dynamically in __post_init__
     
     # Directory containing WAV files
-    # Will be resolved as {base_dataset_dir}/{project_name}/wavs
+    # Will be resolved as {base_dataset_dir}/{project_name}/wavs if project_name is not empty
+    # Otherwise resolved as {base_dataset_dir}/wavs
     wav_dir: str = None  # Set dynamically in __post_init__
     
     preprocessed_dir: str = None  # Set dynamically in __post_init__
@@ -150,10 +153,14 @@ class TrainConfig:
     
     def __post_init__(self):
         """Resolve paths using project_name"""
-        # Resolve dataset paths
-        self.csv_path = os.path.join(self.base_dataset_dir, self.project_name, "metadata.csv")
-        self.wav_dir = os.path.join(self.base_dataset_dir, self.project_name, "wavs")
-        self.preprocessed_dir = os.path.join(self.base_dataset_dir, self.project_name, "preprocess")
-        
-        # Resolve output path
-        self.output_dir = os.path.join(self.base_output_dir, self.project_name)
+        # Resolve dataset paths - use subfolder only if project_name is not empty
+        if self.project_name:
+            self.csv_path = os.path.join(self.base_dataset_dir, self.project_name, "metadata.csv")
+            self.wav_dir = os.path.join(self.base_dataset_dir, self.project_name, "wavs")
+            self.preprocessed_dir = os.path.join(self.base_dataset_dir, self.project_name, "preprocess")
+            self.output_dir = os.path.join(self.base_output_dir, self.project_name)
+        else:
+            self.csv_path = os.path.join(self.base_dataset_dir, "metadata.csv")
+            self.wav_dir = os.path.join(self.base_dataset_dir, "wavs")
+            self.preprocessed_dir = os.path.join(self.base_dataset_dir, "preprocess")
+            self.output_dir = self.base_output_dir
