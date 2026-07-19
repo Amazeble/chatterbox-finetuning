@@ -2,7 +2,7 @@ import os
 from safetensors.torch import save_file
 from peft import PeftModel
 
-from train import TrainConfig
+from src.config import TrainConfig
 from src.model import resize_and_load_t3_weights
 from src.utils import setup_logger
 
