@@ -1,3 +1,23 @@
+import sys
+import pkgutil
+from importlib.machinery import FileFinder  # <-- 1. Add this import
+
+# 1st Fix: Fake the missing ImpImporter class
+if not hasattr(pkgutil, 'ImpImporter'):
+    class DummyImpImporter:
+        pass
+    pkgutil.ImpImporter = DummyImpImporter
+
+# 2nd Fix: Fake the missing find_module method on FileFinder (ADD THIS BLOCK NOW)
+if not hasattr(FileFinder, 'find_module'):
+    def dummy_find_module(self, fullname):
+        return None
+    FileFinder.find_module = dummy_find_module
+
+# Force Python to prefer pip-installed packages over broken system ones
+sys.path = [p for p in sys.path if 'dist-packages' not in p] + [p for p in sys.path if 'dist-packages' in p]
+
+
 # =============================================================================
 # CRITICAL FIX APPLIED: Restored correct transformers import and config logic.
 # Date: 2024-10-27
