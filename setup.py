@@ -4,7 +4,7 @@ import sys
 import json
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from train import TrainConfig
+from src.config import TrainConfig
 
 
 DEST_DIR = "pretrained_models"
@@ -163,6 +163,11 @@ def main():
         
 
     cfg = TrainConfig()
+    
+    # Create output directory if it doesn't exist
+    if not os.path.exists(cfg.output_dir):
+        print(f"Creating output directory: {cfg.output_dir}")
+        os.makedirs(cfg.output_dir, exist_ok=True)
 
     if cfg.is_turbo:
         print(f"Mode: CHATTERBOX-TURBO (Checking {len(CHATTERBOX_TURBO_FILES)} files)")

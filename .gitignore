@@ -1,20 +1,57 @@
-```
-# Python
-__pycache__/
+# Compiled and build artifacts
 *.pyc
-*.pyo
-*.pyd
-
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment
-.env
-.env.local
-*.env.*
+__pycache__/
+*.o
+*.obj
+dist/
+build/
+*.so
+*.dll
+*.exe
+*.class
+*.a
+*.out
 
 # Dependencies
 .venv/
 venv/
-```
+node_modules/
+.julia/
+.zig-cache/
+target/
+.gradle/
+.mypy_cache/
+.pytest_cache/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.~
+Thumbs.db
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+nbproject/
+
+# Coverage
+.coverage
+coverage/
+htmlcov/
+
+# Distribution / packaging
+*.egg-info/
+MANIFEST
+.pytest_cache/
+.hypothesis/
