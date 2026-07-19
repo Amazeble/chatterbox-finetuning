@@ -138,12 +138,9 @@ def main():
 
         if cfg.is_turbo:
             # For turbo models using GPT2, we need to remove word embeddings
-            # In newer transformers versions, wte/wpe may not exist
-            if hasattr(new_t3_model, "tfmr"):
-                if hasattr(new_t3_model.tfmr, "wte"):
-                    del new_t3_model.tfmr.wte
-                if hasattr(new_t3_model.tfmr, "wpe"):
-                    del new_t3_model.tfmr.wpe
+            # In newer transformers versions (4.50+), wte/wpe are properties and cannot be deleted
+            # Skip deletion as it's not needed for fine-tuning with custom embeddings
+            pass
 
         del tts_engine_original
         del pretrained_t3_state_dict
@@ -193,12 +190,9 @@ def main():
 
         if cfg.is_turbo:
             # For turbo models using GPT2, we need to remove word embeddings
-            # In newer transformers versions, wte/wpe may not exist
-            if hasattr(new_t3_model, "tfmr"):
-                if hasattr(new_t3_model.tfmr, "wte"):
-                    del new_t3_model.tfmr.wte
-                if hasattr(new_t3_model.tfmr, "wpe"):
-                    del new_t3_model.tfmr.wpe
+            # In newer transformers versions (4.50+), wte/wpe are properties and cannot be deleted
+            # Skip deletion as it's not needed for fine-tuning with custom embeddings
+            pass
 
         del tts_engine_original
         del pretrained_t3_state_dict
