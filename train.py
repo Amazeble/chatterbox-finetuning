@@ -138,12 +138,12 @@ def main():
 
         if cfg.is_turbo:
             # For turbo models using GPT2, we need to remove word embeddings
-            # The error suggests wte doesn't exist, so we check more carefully
-            if hasattr(new_t3_model.tfmr, "wte"):
-                try:
+            # In newer transformers versions, wte/wpe may not exist
+            if hasattr(new_t3_model, "tfmr"):
+                if hasattr(new_t3_model.tfmr, "wte"):
                     del new_t3_model.tfmr.wte
-                except AttributeError:
-                    pass  # Already removed or doesn't exist
+                if hasattr(new_t3_model.tfmr, "wpe"):
+                    del new_t3_model.tfmr.wpe
 
         del tts_engine_original
         del pretrained_t3_state_dict
@@ -193,12 +193,12 @@ def main():
 
         if cfg.is_turbo:
             # For turbo models using GPT2, we need to remove word embeddings
-            # The error suggests wte doesn't exist, so we check more carefully
-            if hasattr(new_t3_model.tfmr, "wte"):
-                try:
+            # In newer transformers versions, wte/wpe may not exist
+            if hasattr(new_t3_model, "tfmr"):
+                if hasattr(new_t3_model.tfmr, "wte"):
                     del new_t3_model.tfmr.wte
-                except AttributeError:
-                    pass  # Already removed or doesn't exist
+                if hasattr(new_t3_model.tfmr, "wpe"):
+                    del new_t3_model.tfmr.wpe
 
         del tts_engine_original
         del pretrained_t3_state_dict
