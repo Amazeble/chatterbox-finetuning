@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Union
 import os
 import glob
 import json
@@ -114,7 +114,7 @@ class TrainConfig:
     ljspeech = True # Set True if the dataset format is ljspeech, and False if it's file-based.
     json_format = False # Set True if the dataset format is json, and False if it's file-based or ljspeech.
     # Preprocessing mode: True (always run), False (skip), "auto" (smart detection)
-    preprocess: Optional[Literal[True, False, "auto"]] = field(default_factory=lambda: _get_field_value("preprocess", True))
+    preprocess: Optional[Union[bool, Literal["auto"]]] = field(default_factory=lambda: _get_field_value("preprocess", True))
     
     is_turbo: bool = field(default_factory=lambda: _get_field_value("is_turbo", True))  # Set True if you're training Turbo, False if you're training Normal.
     is_lora: bool = field(default_factory=lambda: _get_field_value("is_lora", True))   # True: Efficient LoRA training (Recommended for < 10h data)
