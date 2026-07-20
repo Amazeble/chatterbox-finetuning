@@ -172,6 +172,8 @@ def preprocess_dataset_json_based(config, tts_engine: ChatterboxTTS):
         with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
         logger.info(f"Preprocessing report saved to: {report_path}")
+    else:
+        logger.warning("No files were processed, skipping report generation")
     
     
 
