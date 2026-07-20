@@ -3,6 +3,8 @@ import torch
 import torchaudio
 import pandas as pd
 from tqdm import tqdm
+import hashlib
+import json
 from src.chatterbox_.tts import ChatterboxTTS, punc_norm
 from src.chatterbox_.tts_turbo import ChatterboxTurboTTS
 from src.chatterbox_.models.s3tokenizer import S3_SR
@@ -11,6 +13,16 @@ from src.config import TrainConfig
 
 
 logger = setup_logger(__name__)
+
+
+def compute_file_hash(filepath):
+    """Compute SHA256 hash of a file."""
+    sha256_hash = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
+
 
 def preprocess_dataset_ljspeech(config, tts_engine: ChatterboxTTS):
     
@@ -27,6 +39,8 @@ def preprocess_dataset_ljspeech(config, tts_engine: ChatterboxTTS):
     logger.info(f"Processing dataset... Total: {len(data)}")
 
     success_count = 0
+    total_duration_seconds = 0.0
+    first_file_info = None
 
     SPEECH_STOP_ID = getattr(tts_engine.t3.hp, 'stop_speech_token', 6562)
     for idx, row in tqdm(data.iterrows(), total=len(data)):
@@ -42,8 +56,16 @@ def preprocess_dataset_ljspeech(config, tts_engine: ChatterboxTTS):
             if not os.path.exists(wav_path): 
                 continue
 
+            # Compute hash only for the first file
+            if first_file_info is None:
+                file_hash = compute_file_hash(wav_path)
+                first_file_info = {"filename": filename, "hash": file_hash}
 
             wav, sr = torchaudio.load(wav_path)
+            
+            # Calculate duration before any resampling
+            duration_seconds = wav.shape[1] / sr
+            total_duration_seconds += duration_seconds
             
             if wav.shape[0] > 1: 
                 wav = wav.mean(dim=0, keepdim=True)
@@ -115,6 +137,27 @@ def preprocess_dataset_ljspeech(config, tts_engine: ChatterboxTTS):
             continue
         
     logger.info(f"Preprocessing completed! Success: {success_count}/{len(data)}")
+    
+    # Format total duration as HH:MM:SS
+    hours = int(total_duration_seconds // 3600)
+    minutes = int((total_duration_seconds % 3600) // 60)
+    seconds = int(total_duration_seconds % 60)
+    duration_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+    
+    logger.info(f"Total audio duration: {duration_str} ({total_duration_seconds:.2f} seconds)")
+    
+    # Save preprocessing report with file count, total duration, and first file hash
+    if first_file_info:
+        report_path = os.path.join(config.preprocessed_dir, "preprocess_report.json")
+        report = {
+            "total_files": success_count,
+            "total_duration_seconds": total_duration_seconds,
+            "total_duration_formatted": duration_str,
+            "first_file": first_file_info
+        }
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
+        logger.info(f"Preprocessing report saved to: {report_path}")
     
     
 
