@@ -2,6 +2,8 @@ import os
 import glob
 import torch
 import torchaudio
+import hashlib
+import json
 from tqdm import tqdm
 
 from src.chatterbox_.tts_turbo import ChatterboxTurboTTS
@@ -13,6 +15,14 @@ from src.config import TrainConfig
 
 logger = setup_logger(__name__)
 
+
+def compute_file_hash(filepath):
+    """Compute SHA256 hash of a file."""
+    sha256_hash = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
 
 
 def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS):
@@ -36,7 +46,7 @@ def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS):
     tts_engine.s3gen.eval()
 
     search_path = os.path.join(config.wav_dir, "*.wav")
-    wav_files = glob.glob(search_path)
+    wav_files = sorted(glob.glob(search_path))
     
     if len(wav_files) == 0:
         logger.error(f"ERROR: No .wav files found in folder '{config.wav_dir}'!")
@@ -45,6 +55,7 @@ def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS):
     logger.info(f"Processing dataset... Found audio file: {len(wav_files)}")
 
     success_count = 0
+    file_hashes = []
     
     SPEECH_STOP_ID = getattr(tts_engine.t3.hp, 'stop_speech_token', 6562)
     for wav_path in tqdm(wav_files, desc="Preprocessing"):
@@ -64,6 +75,11 @@ def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS):
                 
             if not raw_text:
                 continue
+
+
+            # Compute hash for this wav file
+            file_hash = compute_file_hash(wav_path)
+            file_hashes.append((filename, file_hash))
 
 
             wav, sr = torchaudio.load(wav_path)
@@ -136,6 +152,24 @@ def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS):
             continue
 
     logger.info(f"Preprocessing completed! Success: {success_count}/{len(wav_files)}")
+    
+    # Save preprocessing report with file count and hashes
+    if file_hashes:
+        report_path = os.path.join(config.preprocessed_dir, "preprocess_report.json")
+        report = {
+            "total_files": len(file_hashes),
+            "first_file": {
+                "filename": file_hashes[0][0],
+                "hash": file_hashes[0][1]
+            },
+            "last_file": {
+                "filename": file_hashes[-1][0],
+                "hash": file_hashes[-1][1]
+            }
+        }
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
+        logger.info(f"Preprocessing report saved to: {report_path}")
 
 
 

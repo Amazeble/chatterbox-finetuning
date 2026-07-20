@@ -1,43 +1,81 @@
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional, Union
+from typing import List, Optional
 import os
 import glob
+import json
+import hashlib
+
+def compute_file_hash(filepath):
+    """Compute SHA256 hash of a file."""
+    sha256_hash = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
+
 
 def should_run_preprocessing(config) -> bool:
     """
-    Determine if preprocessing should run based on config.preprocess setting.
+    Determine if preprocessing should run using hash-based verification.
     
-    - If preprocess is True: always run
-    - If preprocess is False: skip
-    - If preprocess is "auto": check if preprocessed_dir exists and has same number of .pt files as .wav files
+    Checks if preprocessed_dir exists and has a valid preprocess_report.json.
+    Compares current wav file hashes with stored hashes to detect changes.
     
     Returns True if preprocessing should run, False otherwise.
     """
-    if config.preprocess is True:
+    # Check if preprocessed_dir exists
+    if not os.path.exists(config.preprocessed_dir):
         return True
-    elif config.preprocess is False:
-        return False
-    elif config.preprocess == "auto":
-        # Check if preprocessed_dir exists
-        if not os.path.exists(config.preprocessed_dir):
-            return True
-        
-        # Count .wav files in wav_dir
-        wav_files = glob.glob(os.path.join(config.wav_dir, "*.wav"))
-        wav_count = len(wav_files)
-        
-        # Count .pt files in preprocessed_dir
-        pt_files = glob.glob(os.path.join(config.preprocessed_dir, "*.pt"))
-        pt_count = len(pt_files)
-        
-        # If counts don't match, rerun preprocessing
-        if wav_count != pt_count:
-            return True
-        
+    
+    # Check if preprocess_report.json exists
+    report_path = os.path.join(config.preprocessed_dir, "preprocess_report.json")
+    if not os.path.exists(report_path):
+        return True
+    
+    # Load the stored report
+    try:
+        with open(report_path, "r", encoding="utf-8") as f:
+            report = json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return True
+    
+    # Count .wav files in wav_dir
+    wav_files = sorted(glob.glob(os.path.join(config.wav_dir, "*.wav")))
+    wav_count = len(wav_files)
+    
+    # Check if total file count matches
+    if wav_count != report.get("total_files", 0):
+        return True
+    
+    # If no files, no need to preprocess
+    if wav_count == 0:
         return False
     
-    # Default to running preprocessing
-    return True
+    # Compare first and last file hashes
+    first_wav = wav_files[0]
+    last_wav = wav_files[-1]
+    
+    first_filename = os.path.basename(first_wav)
+    last_filename = os.path.basename(last_wav)
+    
+    # Check if first and last filenames match
+    stored_first_filename = report.get("first_file", {}).get("filename", "")
+    stored_last_filename = report.get("last_file", {}).get("filename", "")
+    
+    if first_filename != stored_first_filename or last_filename != stored_last_filename:
+        return True
+    
+    # Compare hashes
+    current_first_hash = compute_file_hash(first_wav)
+    current_last_hash = compute_file_hash(last_wav)
+    
+    stored_first_hash = report.get("first_file", {}).get("hash", "")
+    stored_last_hash = report.get("last_file", {}).get("hash", "")
+    
+    if current_first_hash != stored_first_hash or current_last_hash != stored_last_hash:
+        return True
+    
+    return False
 
 
 @dataclass
@@ -78,8 +116,6 @@ class TrainConfig:
 
     ljspeech = True # Set True if the dataset format is ljspeech, and False if it's file-based.
     json_format = False # Set True if the dataset format is json, and False if it's file-based or ljspeech.
-    # Preprocessing mode: True (always run), False (skip), "auto" (smart detection)
-    preprocess: Optional[Union[bool, Literal["auto"]]] = True
     
     is_turbo: bool = True  # Set True if you're training Turbo, False if you're training Normal.
     is_lora: bool = True   # True: Efficient LoRA training (Recommended for < 10h data)
