@@ -13,29 +13,22 @@ env/
 .env.local
 .env.*
 
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
 # Logs
 *.log
 
-# Temporary files
-*.tmp
-*.swp
-*~
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
-
-# IDE
+# Editor/IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*.tmp
 
-# Build artifacts
-dist/
-build/
-target/
+# OS
+.DS_Store
+Thumbs.db
 ```

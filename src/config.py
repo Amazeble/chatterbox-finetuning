@@ -39,9 +39,30 @@ def should_run_preprocessing(config) -> bool:
     except (json.JSONDecodeError, IOError):
         return True
     
-    # Count .wav files in wav_dir
-    wav_files = sorted(glob.glob(os.path.join(config.wav_dir, "*.wav")))
-    wav_count = len(wav_files)
+    # Count source files based on dataset type
+    if config.json_format:
+        # For JSON format, check if metadata file exists
+        if not os.path.exists(config.metadata_path):
+            return True
+        # We can't easily verify without re-reading, so trust the report exists
+        # The first_file hash will be checked below
+        wav_files = []
+        wav_count = report.get("total_files", 0)
+    elif config.ljspeech:
+        # For LJSpeech format, count entries in CSV
+        if not os.path.exists(config.csv_path):
+            return True
+        import pandas as pd
+        try:
+            data = pd.read_csv(config.csv_path, sep="|", header=None, quoting=3)
+            wav_count = len(data)
+        except Exception:
+            return True
+        wav_files = []
+    else:
+        # For file-based format, count .wav files in wav_dir
+        wav_files = sorted(glob.glob(os.path.join(config.wav_dir, "*.wav")))
+        wav_count = len(wav_files)
     
     # Check if total file count matches
     if wav_count != report.get("total_files", 0):
@@ -51,28 +72,24 @@ def should_run_preprocessing(config) -> bool:
     if wav_count == 0:
         return False
     
-    # Compare first and last file hashes
-    first_wav = wav_files[0]
-    last_wav = wav_files[-1]
-    
-    first_filename = os.path.basename(first_wav)
-    last_filename = os.path.basename(last_wav)
-    
-    # Check if first and last filenames match
+    # Compare first file hash for verification
+    # Get the first filename from the report
     stored_first_filename = report.get("first_file", {}).get("filename", "")
-    stored_last_filename = report.get("last_file", {}).get("filename", "")
     
-    if first_filename != stored_first_filename or last_filename != stored_last_filename:
+    if not stored_first_filename:
         return True
     
-    # Compare hashes
+    # Construct the path to the first wav file
+    first_wav = os.path.join(config.wav_dir, stored_first_filename)
+    
+    if not os.path.exists(first_wav):
+        return True
+    
+    # Compare first file hash
     current_first_hash = compute_file_hash(first_wav)
-    current_last_hash = compute_file_hash(last_wav)
-    
     stored_first_hash = report.get("first_file", {}).get("hash", "")
-    stored_last_hash = report.get("last_file", {}).get("hash", "")
     
-    if current_first_hash != stored_first_hash or current_last_hash != stored_last_hash:
+    if current_first_hash != stored_first_hash:
         return True
     
     return False
