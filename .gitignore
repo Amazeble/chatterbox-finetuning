@@ -1,36 +1,27 @@
 ```
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
 # Compiled and build artifacts
-*.o
-*.obj
-*.out
-*.so
-*.dll
-*.exe
+*.pyc
+__pycache__/
 
 # Dependencies
 .venv/
 venv/
-.env
-.env.local
-*.env.*
+node_modules/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
 
+# Environment
+.env
+.env.local
+*.env.*
+
 # Editors
 .vscode/
 .idea/
 
-# Distribution / packaging
-dist/
-build/
-*.egg-info/
+# Original rules preserved
+*.log
 ```
