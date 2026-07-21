@@ -238,7 +238,7 @@ def main():
                 modules_to_save=cfg.lora_modules_to_save,
             )
             tts_engine_new.t3 = get_peft_model(tts_engine_new.t3, peft_config)
-            tts_engine_new.t3.load_adapter(adapter_path)
+            tts_engine_new.t3.load_adapter(adapter_path, adapter_name="default")
         else:
             tts_engine_new.t3.train()
             for param in tts_engine_new.t3.parameters():
