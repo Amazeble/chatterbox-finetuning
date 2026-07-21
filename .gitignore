@@ -1,13 +1,23 @@
 ```
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
-*/.ipynb_checkpoints/*
 
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
 *.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+.ENV/
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -25,18 +35,16 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual environments
-venv/
-env/
-ENV/
-.venv/
-.env/
-
-# IDE specific
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# Environment variables
+.env
+.env.local
+*.env.*
 
 # Logs
 *.log
@@ -49,17 +57,4 @@ ENV/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Environment variables
-.env
-.env.local
-*.env.*
-
-# Coverage reports
-.coverage
-coverage/
-htmlcov/
-
-# MyPy cache
-.mypy_cache/
 ```
