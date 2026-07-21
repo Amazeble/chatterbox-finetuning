@@ -1,56 +1,41 @@
-# Python
+```
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.local
+*.env.*
+
+# Python cache
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+*.pyc
+*.pyo
+*.pyd
 
-# Environment
-.venv/
-venv/
-env/
-ENV/
+# Temporary files
+*.tmp
+*.swp
+*~
 
-# IDE
+# Logs
+*.log
+
+# Coverage reports
+.coverage
+coverage/
+htmlcov/
+
+# IDE specific
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Logs
-*.log
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Coverage
-.coverage
-coverage/
-htmlcov/
-.coverage.*
-
-# Testing
-.pytest_cache/
-.mypy_cache/
-
-# Distribution / packaging
-.pybuild/
-```# Local .env files
-.env
-.env.local
-.env.dev
-.env.production
-.env.*
+# Local configuration
+local.properties
 ```
