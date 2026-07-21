@@ -1,28 +1,42 @@
 ```
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
-*.ipynb~
+*/.ipynb_checkpoints/*
 
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+*.py[cod]
+*$py.class
 *.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Virtual environments
 venv/
-.venv/
 env/
 ENV/
-.ENV/
+.venv/
+.env/
 
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# IDE specific
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # Logs
 *.log
@@ -46,47 +60,6 @@ Thumbs.db
 coverage/
 htmlcov/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Build artifacts
-dist/
-build/
-*.out
-*.exe
-*.dll
-*.so
-*.a
-*.obj
-
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
-
-# Testing
-.pytest_cache/
+# MyPy cache
 .mypy_cache/
 ```
