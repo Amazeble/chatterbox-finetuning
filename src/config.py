@@ -5,6 +5,37 @@ import glob
 import json
 import hashlib
 
+
+def find_project_name(base_dataset_dir: str) -> str:
+    """
+    Automatically detect project name by finding subdirectories in base_dataset_dir.
+    Looks for directories under ./TTSDataset/** or the configured base_dataset_dir.
+    
+    Returns the first found subdirectory name, or empty string if none found.
+    """
+    # Check if base_dataset_dir exists
+    if not os.path.exists(base_dataset_dir):
+        return ""
+    
+    # Find all subdirectories in base_dataset_dir
+    subdirs = [d for d in os.listdir(base_dataset_dir) 
+               if os.path.isdir(os.path.join(base_dataset_dir, d))]
+    
+    # Filter for directories that look like project folders (have wavs or metadata.csv)
+    for subdir in subdirs:
+        subdir_path = os.path.join(base_dataset_dir, subdir)
+        # Check if this looks like a valid project directory
+        if (os.path.exists(os.path.join(subdir_path, "wavs")) or 
+            os.path.exists(os.path.join(subdir_path, "metadata.csv"))):
+            return subdir
+    
+    # If no valid project directory found, return first subdirectory if any
+    if subdirs:
+        return subdirs[0]
+    
+    return ""
+
+
 def compute_file_hash(filepath):
     """Compute SHA256 hash of a file."""
     sha256_hash = hashlib.sha256()
@@ -109,7 +140,8 @@ class TrainConfig:
     
     # Project name for organizing dataset and outputs (e.g., "Adriene")
     # If empty, paths will use base_dataset_dir directly without subfolder
-    project_name: str = ""
+    # Automatically detected from ./TTSDataset/** if not provided
+    project_name: str = None  # Set dynamically in __post_init__
     
     # Path to your metadata CSV (Format: ID|RawText|NormText)
     # Will be resolved as {base_dataset_dir}/{project_name}/metadata.csv if project_name is not empty
@@ -171,6 +203,10 @@ class TrainConfig:
     
     def __post_init__(self):
         """Resolve paths using project_name"""
+        # Auto-detect project_name if not provided
+        if self.project_name is None:
+            self.project_name = find_project_name(self.base_dataset_dir)
+        
         # Resolve dataset paths - use subfolder only if project_name is not empty
         if self.project_name:
             self.csv_path = os.path.join(self.base_dataset_dir, self.project_name, "metadata.csv")
