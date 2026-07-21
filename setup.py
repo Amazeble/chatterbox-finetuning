@@ -4,7 +4,6 @@ import sys
 import json
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from src.config import TrainConfig
 
 
 DEST_DIR = "pretrained_models"
@@ -20,15 +19,6 @@ CHATTERBOX_TURBO_FILES = {
     "tokenizer_config.json": "https://huggingface.co/ResembleAI/chatterbox-turbo/resolve/main/tokenizer_config.json?download=true",
     "merges.txt": "https://huggingface.co/ResembleAI/chatterbox-turbo/resolve/main/merges.txt?download=true",
     "grapheme_mtl_merged_expanded_v1.json": "https://huggingface.co/ResembleAI/chatterbox/resolve/main/grapheme_mtl_merged_expanded_v1.json?download=true"
-}
-
-
-CHATTERBOX_FILES = {
-    "ve.safetensors": "https://huggingface.co/ResembleAI/chatterbox/resolve/main/ve.safetensors?download=true",
-    "t3_cfg.safetensors": "https://huggingface.co/ResembleAI/chatterbox/resolve/main/t3_cfg.safetensors?download=true",
-    "s3gen.safetensors": "https://huggingface.co/ResembleAI/chatterbox/resolve/main/s3gen.safetensors?download=true",
-    "conds.pt": "https://huggingface.co/ResembleAI/chatterbox/resolve/main/conds.pt?download=true",
-    "tokenizer.json": "https://huggingface.co/ResembleAI/chatterbox/resolve/main/grapheme_mtl_merged_expanded_v1.json?download=true"
 }
 
 def download_file(url, dest_path):
@@ -150,7 +140,7 @@ def test_merge_tokenizer_process(tokenizer_path):
 
 def main():
     
-    print("--- Chatterbox Pretrained Model Setup ---\n")
+    print("--- Chatterbox Turbo Pretrained Model Setup ---\n")
     
     # 1. Create the directory if it doesn't exist
     if not os.path.exists(DEST_DIR):
@@ -162,43 +152,32 @@ def main():
         print(f"Directory found: {DEST_DIR}")
         
 
-    cfg = TrainConfig()
-    
     # Create output directory if it doesn't exist
-    if not os.path.exists(cfg.output_dir):
-        print(f"Creating output directory: {cfg.output_dir}")
-        os.makedirs(cfg.output_dir, exist_ok=True)
+    output_dir = "output"
+    if not os.path.exists(output_dir):
+        print(f"Creating output directory: {output_dir}")
+        os.makedirs(output_dir, exist_ok=True)
 
-    if cfg.is_turbo:
-        print(f"Mode: CHATTERBOX-TURBO (Checking {len(CHATTERBOX_TURBO_FILES)} files)")
-        FILES_TO_DOWNLOAD = CHATTERBOX_TURBO_FILES
-        
-    else:
-        print(f"Mode: CHATTERBOX-TTS (Checking {len(CHATTERBOX_FILES)} files)")
-        FILES_TO_DOWNLOAD = CHATTERBOX_FILES
+    # Always use turbo mode
+    print(f"Mode: CHATTERBOX-TURBO (Checking {len(CHATTERBOX_TURBO_FILES)} files)")
+    FILES_TO_DOWNLOAD = CHATTERBOX_TURBO_FILES
 
     # 2. Download files
     for filename, url in FILES_TO_DOWNLOAD.items():
         dest_path = os.path.join(DEST_DIR, filename)
         download_file(url, dest_path)
 
-    if cfg.is_turbo:
-        new_vocab_size = merge_and_save_turbo_tokenizer()
-        if new_vocab_size > 0:
-            
-            #test_merge_tokenizer_process(DEST_DIR)
+    new_vocab_size = merge_and_save_turbo_tokenizer()
+    if new_vocab_size > 0:
+        
+        #test_merge_tokenizer_process(DEST_DIR)
 
-            print("\n" + "="*60)
-            print("INSTALLATION COMPLETE (CHATTERBOX-TURBO MODE)")
-            print("All models are set up in 'pretrained_models/' folder.")
-            print(f"Please update the 'new_vocab_size' value in the 'src/config.py' file")
-            print(f"to: {new_vocab_size}")
-            print("="*60 + "\n")
-
-    else:
-        print("\nINSTALLATION COMPLETE (CHATTERBOX-TTS MOD)")
+        print("\n" + "="*60)
+        print("INSTALLATION COMPLETE (CHATTERBOX-TURBO MODE)")
         print("All models are set up in 'pretrained_models/' folder.")
-        print(f"Note: 'grapheme_mtl_merged_expanded_v1.json' was saved as 'tokenizer.json' for the new vocabulary.")
+        print(f"Please update the 'new_vocab_size' value in the 'src/config.py' file")
+        print(f"to: {new_vocab_size}")
+        print("="*60 + "\n")
 
 
 
