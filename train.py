@@ -153,12 +153,6 @@ def parse_args():
         default=None,
         help="Path of checkpoint to resume training from"
     )
-    parser.add_argument(
-        "--project_name",
-        type=str,
-        default=None,
-        help="Project name for organizing dataset and outputs"
-    )
     return parser.parse_args()
 
 
@@ -173,27 +167,12 @@ def load_config_from_json(config_path="config.json"):
 def main():
     args = parse_args()
     
-    # Create/update colab_config_override.json if project_name is provided via CLI
-    if args.project_name is not None and args.project_name != "":
-        override_file = "colab_config_override.json"
-        overrides = {}
-        if os.path.exists(override_file):
-            try:
-                with open(override_file, 'r') as f:
-                    overrides = json.load(f)
-            except Exception:
-                pass
-        overrides["project_name"] = args.project_name
-        with open(override_file, 'w') as f:
-            json.dump(overrides, f, indent=2)
-        logger.info(f"Updated {override_file} with project_name: {args.project_name}")
-    
-    # Initialize config - TrainConfig will read from colab_config_override.json automatically
+    # Initialize config - TrainConfig will auto-detect project_name from dataset directory
     cfg = TrainConfig()
     
-    # Validate that project_name is set
+    # Validate that project_name is set (auto-detected or from config)
     if not cfg.project_name:
-        logger.error("project_name is not set! Please provide it via --project_name argument or ensure colab_config_override.json contains a valid project_name.")
+        logger.error("project_name could not be auto-detected! Please ensure your dataset directory structure contains 'wavs/' or 'metadata.csv' files.")
         sys.exit(1)
 
     # 0. CHECK MODEL FILES

@@ -141,7 +141,7 @@ class TrainConfig:
     # Project name for organizing dataset and outputs (e.g., "Adriene")
     # If empty, paths will use base_dataset_dir directly without subfolder
     # Automatically detected from ./TTSDataset/** if not provided
-    project_name: str = None  # Set dynamically in __post_init__
+    project_name: Optional[str] = None  # Set dynamically in __post_init__
     
     # Path to your metadata CSV (Format: ID|RawText|NormText)
     # Will be resolved as {base_dataset_dir}/{project_name}/metadata.csv if project_name is not empty
