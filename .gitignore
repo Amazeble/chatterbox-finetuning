@@ -1,56 +1,37 @@
+```
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+*.pyc
+*.pyo
+*.pyd
 
-# Environment
+# Dependencies
 .venv/
 venv/
 env/
-ENV/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+.env
+.env.local
+.env.*
 
 # Logs
 *.log
 
-# Coverage
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
 .coverage
 coverage/
 htmlcov/
-.coverage.*
 
-# Testing
-.pytest_cache/
+# MyPy cache
 .mypy_cache/
-
-# Distribution / packaging
-.pybuild/
-```# Local .env files
-.env
-.env.local
-.env.dev
-.env.production
-.env.*
+# Pytest cache
+.pytest_cache/
 ```

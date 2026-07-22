@@ -4,6 +4,7 @@ import numpy as np
 import soundfile as sf
 import random
 import re
+import argparse
 from safetensors.torch import load_file
 
 from src.model import resize_and_load_t3_weights
@@ -60,6 +61,7 @@ else:
 TEXT_TO_SAY = "Merhaba, sesimi geliştirmem oldukça uzun zaman aldı ve şimdi sahip olduğuma göre, sessiz kalmayacağım."
 AUDIO_PROMPT = "./speaker_reference/2.wav"
 OUTPUT_FILE = "./output.wav"
+KEEP_ALL_SILENT = False
 
 
 # -----------------------------------------------------------------------------
@@ -169,15 +171,19 @@ def load_finetuned_engine_full(device):
 # Helpers
 # -----------------------------------------------------------------------------
 
-def generate_sentence_audio(engine, text, prompt_path, **kwargs):
-    """Generates audio for a single sentence and trims silence."""
+def generate_sentence_audio(engine, text, prompt_path, keep_all_silent=False, **kwargs):
+    """Generates audio for a single sentence and trims silence if not keeping all silent."""
     try:
         wav_tensor = engine.generate(text=text, audio_prompt_path=prompt_path, **kwargs)
         if isinstance(wav_tensor, tuple):
             wav_tensor = wav_tensor[0]
         wav_np = wav_tensor.squeeze().cpu().numpy()
-        trimmed_wav = trim_silence_with_vad(wav_np, engine.sr)
-        return engine.sr, trimmed_wav
+        
+        if not keep_all_silent:
+            trimmed_wav = trim_silence_with_vad(wav_np, engine.sr)
+            return engine.sr, trimmed_wav
+        else:
+            return engine.sr, wav_np
     except Exception as e:
         logger.error(f"Error generating sentence '{text[:30]}...': {e}")
         return 24000, np.zeros(0)
@@ -195,11 +201,27 @@ def set_seed(seed):
 # Main
 # -----------------------------------------------------------------------------
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Chatterbox Inference Script")
+    parser.add_argument(
+        "--keep-all-silent",
+        action="store_true",
+        help="Keep all silence in the generated audio. When set, no silence will be removed by VAD trimming."
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+    
+    # Set global flag based on command line argument
+    global KEEP_ALL_SILENT
+    KEEP_ALL_SILENT = args.keep_all_silent
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     logger.info(f"Inference running on: {device}")
     logger.info(f"Training strategy: {'LoRA' if IS_LORA else 'Full Fine-Tune'}")
+    logger.info(f"Keep all silent: {KEEP_ALL_SILENT}")
 
     if IS_LORA:
         engine = load_finetuned_engine_lora(device)
@@ -218,7 +240,7 @@ def main():
 
     for i, sent in enumerate(sentences):
         logger.info(f"Synthesizing ({i+1}/{len(sentences)}): {sent}")
-        sr, audio_chunk = generate_sentence_audio(engine, sent, AUDIO_PROMPT, **PARAMS)
+        sr, audio_chunk = generate_sentence_audio(engine, sent, AUDIO_PROMPT, keep_all_silent=KEEP_ALL_SILENT, **PARAMS)
 
         if len(audio_chunk) > 0:
             all_chunks.append(audio_chunk)

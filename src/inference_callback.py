@@ -160,7 +160,13 @@ class InferenceCallback(TrainerCallback):
                 wav = wav[0]
 
             wav_np = wav.squeeze().cpu().numpy()
-            trimmed_wav = trim_silence_with_vad(wav_np, inference_engine.sr)
+            
+            # Only trim silence if keep_all_silent is False
+            if not getattr(self.config, 'keep_all_silent', False):
+                trimmed_wav = trim_silence_with_vad(wav_np, inference_engine.sr)
+            else:
+                trimmed_wav = wav_np
+                
             sf.write(output_path, trimmed_wav, inference_engine.sr)
             logger.info(f"Example saved: {output_path}")
 
@@ -247,7 +253,13 @@ class InferenceCallback(TrainerCallback):
             wav = wav[0]
 
         wav_np = wav.squeeze().cpu().numpy()
-        trimmed_wav = trim_silence_with_vad(wav_np, tts_engine.sr)
+        
+        # Only trim silence if keep_all_silent is False
+        if not getattr(self.config, 'keep_all_silent', False):
+            trimmed_wav = trim_silence_with_vad(wav_np, tts_engine.sr)
+        else:
+            trimmed_wav = wav_np
+            
         sf.write(output_path, trimmed_wav, tts_engine.sr)
         logger.info(f"Example saved: {output_path}")
 

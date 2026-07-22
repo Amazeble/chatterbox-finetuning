@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Union, Literal
 import os
 import glob
 import json
@@ -129,6 +129,7 @@ class TrainConfig:
     is_inference = False
     inference_prompt_path: str = "./speaker_reference/2.wav"
     inference_test_text: str = "Merhaba, sesimi geliştirmem oldukça uzun zaman aldı ve şimdi sahip olduğuma göre, sessiz kalmayacağım."
+    keep_all_silent: bool = False  # If True, no silence will be trimmed during inference
 
 
     ljspeech = True # Set True if the dataset format is ljspeech, and False if it's file-based.
