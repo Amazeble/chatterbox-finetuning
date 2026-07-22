@@ -153,6 +153,12 @@ def parse_args():
         default=None,
         help="Path of checkpoint to resume training from"
     )
+    parser.add_argument(
+        "-p", "--project",
+        type=str,
+        default=None,
+        help="Project name to use from MyTTSDataset directory (e.g., 'Adriene' will use MyTTSDataset/Adriene)"
+    )
     return parser.parse_args()
 
 
@@ -170,9 +176,13 @@ def main():
     # Initialize config - TrainConfig will auto-detect project_name from dataset directory
     cfg = TrainConfig()
     
-    # Validate that project_name is set (auto-detected or from config)
+    # Override project_name if --project argument is provided
+    if args.project:
+        cfg.project_name = args.project
+    
+    # Validate that project_name is set (from --project, auto-detected, or from config)
     if not cfg.project_name:
-        logger.error("project_name could not be auto-detected! Please ensure your dataset directory structure contains 'wavs/' or 'metadata.csv' files.")
+        logger.error("project_name could not be determined! Please use --project to specify a project folder in MyTTSDataset/, or ensure your dataset directory structure contains 'wavs/' or 'metadata.csv' files.")
         sys.exit(1)
 
     # 0. CHECK MODEL FILES
