@@ -77,18 +77,16 @@ def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS):
             if not raw_text:
                 continue
 
-
-            # Compute hash only for the first file
-            if first_file_info is None:
-                file_hash = compute_file_hash(wav_path)
-                first_file_info = {"filename": filename, "hash": file_hash}
-
-
             wav, sr = torchaudio.load(wav_path)
             
             # Calculate duration before any resampling
             duration_seconds = wav.shape[1] / sr
             total_duration_seconds += duration_seconds
+            
+            # Compute hash only for the first successfully processed file
+            if first_file_info is None:
+                file_hash = compute_file_hash(wav_path)
+                first_file_info = {"filename": filename, "hash": file_hash}
             
 
             if wav.shape[0] > 1: 
