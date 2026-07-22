@@ -153,6 +153,12 @@ def parse_args():
         default=None,
         help="Path of checkpoint to resume training from"
     )
+    parser.add_argument(
+        "-p", "--project",
+        type=str,
+        default=None,
+        help="Project name to use from MyTTSDataset directory (e.g., 'Adriene' will use MyTTSDataset/Adriene)"
+    )
     return parser.parse_args()
 
 
@@ -170,9 +176,13 @@ def main():
     # Initialize config - TrainConfig will auto-detect project_name from dataset directory
     cfg = TrainConfig()
     
-    # Validate that project_name is set (auto-detected or from config)
+    # Override project_name if --project argument is provided
+    if args.project:
+        cfg.project_name = args.project
+    
+    # Validate that project_name is set (from --project, auto-detected, or from config)
     if not cfg.project_name:
-        logger.error("project_name could not be auto-detected! Please ensure your dataset directory structure contains 'wavs/' or 'metadata.csv' files.")
+        logger.error("project_name could not be determined! Please use --project to specify a project folder in MyTTSDataset/, or ensure your dataset directory structure contains 'wavs/' or 'metadata.csv' files.")
         sys.exit(1)
 
     # 0. CHECK MODEL FILES
@@ -359,6 +369,33 @@ def main():
         data_collator=selected_collator,
         callbacks=trainer_callbacks,
     )
+
+    # Print resume information if resuming from checkpoint
+    if args.resume:
+        import os
+        import json
+        checkpoint_path = args.resume
+        if not os.path.isdir(checkpoint_path):
+            # Try to find the checkpoint in output_dir if only name provided
+            if not os.path.isabs(checkpoint_path):
+                checkpoint_path = os.path.join(cfg.output_dir, checkpoint_path)
+        
+        if os.path.isdir(checkpoint_path):
+            trainer_state_path = os.path.join(checkpoint_path, "trainer_state.json")
+            if os.path.exists(trainer_state_path):
+                with open(trainer_state_path, 'r') as f:
+                    state = json.load(f)
+                print(f"\n{'='*60}")
+                print(f"RESUMING FROM CHECKPOINT: {checkpoint_path}")
+                print(f"{'='*60}")
+                print(f"Last Global Step: {state.get('global_step', 'N/A')}")
+                print(f"Last Loss: {state.get('log_history', [])[-1].get('loss', 'N/A') if state.get('log_history') else 'N/A'}")
+                print(f"Last Grad Norm: {state.get('log_history', [])[-1].get('grad_norm', 'N/A') if state.get('log_history') else 'N/A'}")
+                print(f"{'='*60}\n")
+            else:
+                print(f"Warning: trainer_state.json not found in {checkpoint_path}")
+        else:
+            print(f"Warning: Checkpoint directory not found: {checkpoint_path}")
 
     trainer.train()
 
