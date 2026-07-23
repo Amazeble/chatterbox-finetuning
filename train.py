@@ -403,8 +403,6 @@ def main():
 
     # Print resume information if resuming from checkpoint
     if args.resume:
-        import os
-        import json
         checkpoint_path = args.resume
         if not os.path.isdir(checkpoint_path):
             # Try to find the checkpoint in output_dir if only name provided
