@@ -2,6 +2,7 @@ import os
 import torch
 import torchaudio
 import pandas as pd
+import glob
 from tqdm import tqdm
 import hashlib
 import json
@@ -24,7 +25,7 @@ def compute_file_hash(filepath):
     return sha256_hash.hexdigest()
 
 
-def preprocess_dataset_ljspeech(config, tts_engine: ChatterboxTTS):
+def preprocess_dataset_ljspeech(config, tts_engine: ChatterboxTTS, continue_mode: bool = False):
     
     data = pd.read_csv(config.csv_path, sep="|", header=None, quoting=3)
     
@@ -35,6 +36,24 @@ def preprocess_dataset_ljspeech(config, tts_engine: ChatterboxTTS):
     
     tts_engine.ve.to(device)
     tts_engine.s3gen.to(device)
+    
+    # In continue mode, filter out already processed files
+    if continue_mode:
+        existing_pt_files = set()
+        for pt_file in glob.glob(os.path.join(config.preprocessed_dir, "*.pt")):
+            existing_pt_files.add(os.path.basename(pt_file).replace(".pt", ""))
+        
+        original_data = data
+        data = pd.DataFrame([
+            row for _, row in data.iterrows()
+            if str(row[0]).replace(".wav", "") not in existing_pt_files
+        ])
+        skipped_count = len(original_data) - len(data)
+        if skipped_count > 0:
+            logger.info(f"Continue mode: Skipping {skipped_count} already processed files, will process {len(data)} remaining files")
+        else:
+            logger.info(f"Continue mode: All {len(original_data)} files already processed")
+            return
     
     logger.info(f"Processing dataset... Total: {len(data)}")
 
