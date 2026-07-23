@@ -372,12 +372,15 @@ def main():
         selected_collator = data_collator_standart
 
     # 9. TRAINING ARGUMENTS
-    training_args = TrainingArguments(
+    # When resuming from checkpoint, we must NOT set num_train_epochs, max_steps, learning_rate,
+    # or any scheduler-related parameters (lr_scheduler_type, warmup_ratio, warmup_steps).
+    # The Trainer will read these from trainer_state.json and scheduler.pt in the checkpoint.
+    # Setting them will override the checkpoint values and reset the step counter/scheduler/loss curve.
+    
+    training_kwargs = dict(
         output_dir=cfg.output_dir,
         per_device_train_batch_size=cfg.batch_size,
         gradient_accumulation_steps=cfg.grad_accum,
-        learning_rate=cfg.learning_rate,
-        num_train_epochs=cfg.num_epochs,
         save_strategy="steps",
         save_steps=cfg.save_steps,
         logging_strategy="epoch",
@@ -391,7 +394,19 @@ def main():
         dataloader_persistent_workers=True,
         dataloader_pin_memory=True,
         resume_from_checkpoint=args.resume,
+        restore_callback_states_from_checkpoint=True,
     )
+    
+    # Only set training parameters if NOT resuming
+    # When resuming, the Trainer will load all state from checkpoint:
+    # - optimizer.pt (optimizer state)
+    # - scheduler.pt (learning rate scheduler state)  
+    # - trainer_state.json (step counter, epoch, best loss, log history, etc.)
+    if not args.resume:
+        training_kwargs['num_train_epochs'] = cfg.num_epochs
+        training_kwargs['learning_rate'] = cfg.learning_rate
+
+    training_args = TrainingArguments(**training_kwargs)
 
     trainer = Trainer(
         model=model_wrapper,
