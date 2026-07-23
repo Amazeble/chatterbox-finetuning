@@ -250,7 +250,7 @@ def main():
             from peft import LoraConfig, get_peft_model
 
             peft_config = LoraConfig(
-                r=cfg.lora_rank,
+                r=cfg.lora_r,
                 lora_alpha=cfg.lora_alpha,
                 target_modules=cfg.turbo_lora_target_modules if cfg.is_turbo else cfg.lora_target_modules,
                 lora_dropout=0.05,
@@ -403,7 +403,6 @@ def main():
 
     # Print resume information if resuming from checkpoint
     if args.resume:
-        import os
         import json
         checkpoint_path = args.resume
         if not os.path.isdir(checkpoint_path):
