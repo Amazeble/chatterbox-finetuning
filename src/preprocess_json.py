@@ -1,6 +1,7 @@
 
 import os
 import json
+import glob
 import torch
 import torchaudio
 from tqdm import tqdm
@@ -24,7 +25,7 @@ def compute_file_hash(filepath):
     return sha256_hash.hexdigest()
 
 
-def preprocess_dataset_json_based(config, tts_engine: ChatterboxTTS):
+def preprocess_dataset_json_based(config, tts_engine: ChatterboxTTS, continue_mode: bool = False):
     
     """
     Reads metadata from JSON file, processes audio-text pairs, and saves them as .pt.
@@ -52,6 +53,21 @@ def preprocess_dataset_json_based(config, tts_engine: ChatterboxTTS):
     if len(metadata) == 0:
         logger.error(f"ERROR: No items found in metadata file!")
         return
+    
+    # In continue mode, filter out already processed files
+    if continue_mode:
+        existing_pt_files = set()
+        for pt_file in glob.glob(os.path.join(config.preprocessed_dir, "*.pt")):
+            existing_pt_files.add(os.path.basename(pt_file).replace(".pt", ""))
+        
+        original_metadata = metadata
+        metadata = [item for item in metadata if item.get("id") not in existing_pt_files]
+        skipped_count = len(original_metadata) - len(metadata)
+        if skipped_count > 0:
+            logger.info(f"Continue mode: Skipping {skipped_count} already processed files, will process {len(metadata)} remaining files")
+        else:
+            logger.info(f"Continue mode: All {len(original_metadata)} files already processed")
+            return
     
     logger.info(f"Processing dataset... Found items in JSON: {len(metadata)}")
     

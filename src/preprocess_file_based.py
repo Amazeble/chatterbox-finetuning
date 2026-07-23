@@ -25,7 +25,7 @@ def compute_file_hash(filepath):
     return sha256_hash.hexdigest()
 
 
-def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS):
+def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS, continue_mode: bool = False):
     """
     Reads .wav and .txt file pairs in a folder, processes them, and saves them as .pt.
     Structure:
@@ -34,6 +34,10 @@ def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS):
 
     ID.txt (Text)
 
+    Args:
+        config: Training configuration
+        tts_engine: TTS engine for processing
+        continue_mode: If True, skip already processed files and continue from where it left off
     """
 
     os.makedirs(config.preprocessed_dir, exist_ok=True)
@@ -52,6 +56,24 @@ def preprocess_dataset_file_based(config, tts_engine: ChatterboxTTS):
         logger.error(f"ERROR: No .wav files found in folder '{config.wav_dir}'!")
         return
 
+    # In continue mode, filter out already processed files
+    if continue_mode:
+        existing_pt_files = set()
+        for pt_file in glob.glob(os.path.join(config.preprocessed_dir, "*.pt")):
+            existing_pt_files.add(os.path.basename(pt_file).replace(".pt", ""))
+        
+        original_count = len(wav_files)
+        wav_files = [
+            wf for wf in wav_files 
+            if os.path.splitext(os.path.basename(wf))[0] not in existing_pt_files
+        ]
+        skipped_count = original_count - len(wav_files)
+        if skipped_count > 0:
+            logger.info(f"Continue mode: Skipping {skipped_count} already processed files, will process {len(wav_files)} remaining files")
+        else:
+            logger.info(f"Continue mode: All {original_count} files already processed")
+            return
+    
     logger.info(f"Processing dataset... Found audio file: {len(wav_files)}")
 
     success_count = 0

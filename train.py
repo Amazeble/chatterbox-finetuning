@@ -325,6 +325,7 @@ def main():
     # 7. PREPROCESSING
     # Check if existing preprocessed data is valid
     should_skip_preprocessing = False
+    preprocess_continue_mode = False
     
     if args.preprocess_force:
         logger.info("--preprocess-force specified, will run preprocessing")
@@ -335,7 +336,8 @@ def main():
         pt_files = glob.glob(os.path.join(cfg.preprocessed_dir, "*.pt"))
         if pt_files:
             logger.info(f"Found {len(pt_files)} existing .pt files, will continue with them")
-            should_skip_preprocessing = True
+            should_skip_preprocessing = False
+            preprocess_continue_mode = True
         else:
             logger.info("No existing .pt files found, will run preprocessing")
             should_skip_preprocessing = False
@@ -348,11 +350,11 @@ def main():
     
     if not should_skip_preprocessing:
         if cfg.ljspeech:
-            preprocess_dataset_ljspeech(cfg, tts_engine_new)
+            preprocess_dataset_ljspeech(cfg, tts_engine_new, continue_mode=preprocess_continue_mode)
         elif cfg.json_format:
-            preprocess_dataset_json_based(cfg, tts_engine_new)
+            preprocess_dataset_json_based(cfg, tts_engine_new, continue_mode=preprocess_continue_mode)
         else:
-            preprocess_dataset_file_based(cfg, tts_engine_new)
+            preprocess_dataset_file_based(cfg, tts_engine_new, continue_mode=preprocess_continue_mode)
 
     # 8. DATASET & WRAPPER
     train_ds = ChatterboxDataset(cfg)
