@@ -159,6 +159,16 @@ def parse_args():
         default=None,
         help="Project name to use from MyTTSDataset directory (e.g., 'Adriene' will use MyTTSDataset/Adriene)"
     )
+    parser.add_argument(
+        "--preprocess-force",
+        action="store_true",
+        help="Force re-preprocessing even if existing preprocessed data is valid"
+    )
+    parser.add_argument(
+        "--preprocess-continue",
+        action="store_true",
+        help="Scan the preprocess folder and continue with existing preprocess files"
+    )
     return parser.parse_args()
 
 
@@ -314,10 +324,29 @@ def main():
 
     # 7. PREPROCESSING
     # Check if existing preprocessed data is valid
-    if verify_preprocessed_data(cfg):
+    should_skip_preprocessing = False
+    
+    if args.preprocess_force:
+        logger.info("--preprocess-force specified, will run preprocessing")
+        should_skip_preprocessing = False
+    elif args.preprocess_continue:
+        logger.info("--preprocess-continue specified, scanning for existing preprocess files")
+        # Check if there are any .pt files in the preprocessed directory
+        pt_files = glob.glob(os.path.join(cfg.preprocessed_dir, "*.pt"))
+        if pt_files:
+            logger.info(f"Found {len(pt_files)} existing .pt files, will continue with them")
+            should_skip_preprocessing = True
+        else:
+            logger.info("No existing .pt files found, will run preprocessing")
+            should_skip_preprocessing = False
+    elif verify_preprocessed_data(cfg):
         logger.info("Verification passed, skipping preprocessing and using existing .pt files")
+        should_skip_preprocessing = True
     else:
         logger.info("Running preprocessing...")
+        should_skip_preprocessing = False
+    
+    if not should_skip_preprocessing:
         if cfg.ljspeech:
             preprocess_dataset_ljspeech(cfg, tts_engine_new)
         elif cfg.json_format:
