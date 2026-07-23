@@ -250,7 +250,7 @@ def main():
             from peft import LoraConfig, get_peft_model
 
             peft_config = LoraConfig(
-                r=cfg.lora_r,
+                r=cfg.lora_rank,
                 lora_alpha=cfg.lora_alpha,
                 target_modules=cfg.turbo_lora_target_modules if cfg.is_turbo else cfg.lora_target_modules,
                 lora_dropout=0.05,
