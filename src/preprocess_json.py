@@ -177,13 +177,42 @@ def preprocess_dataset_json_based(config, tts_engine: ChatterboxTTS, continue_mo
     logger.info(f"Total audio duration: {duration_str} ({total_duration_seconds:.2f} seconds)")
     
     # Save preprocessing report with file count, total duration, and first file hash
-    if first_file_info:
+    if first_file_info or continue_mode:
         report_path = os.path.join(config.preprocessed_dir, "preprocess_report.json")
+        
+        # In continue mode, load existing report to update totals
+        existing_total_files = 0
+        existing_total_duration = 0.0
+        existing_first_file = None
+        if continue_mode and os.path.exists(report_path):
+            try:
+                with open(report_path, "r", encoding="utf-8") as f:
+                    existing_report = json.load(f)
+                existing_total_files = existing_report.get("total_files", 0)
+                existing_total_duration = existing_report.get("total_duration_seconds", 0.0)
+                existing_first_file = existing_report.get("first_file")
+                logger.info(f"Loaded existing report: {existing_total_files} files, adding {success_count} new files")
+            except (json.JSONDecodeError, IOError) as e:
+                logger.warning(f"Failed to load existing report: {e}, starting fresh")
+        
+        # Calculate totals
+        final_total_files = existing_total_files + success_count
+        final_total_duration = existing_total_duration + total_duration_seconds
+        
+        # Format final duration
+        final_hours = int(final_total_duration // 3600)
+        final_minutes = int((final_total_duration % 3600) // 60)
+        final_seconds = int(final_total_duration % 60)
+        final_duration_str = f"{final_hours:02d}:{final_minutes:02d}:{final_seconds:02d}"
+        
+        # Use existing first_file info if available, otherwise use current
+        final_first_file = existing_first_file if existing_first_file else first_file_info
+        
         report = {
-            "total_files": success_count,
-            "total_duration_seconds": total_duration_seconds,
-            "total_duration_formatted": duration_str,
-            "first_file": first_file_info
+            "total_files": final_total_files,
+            "total_duration_seconds": final_total_duration,
+            "total_duration_formatted": final_duration_str,
+            "first_file": final_first_file
         }
         with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
