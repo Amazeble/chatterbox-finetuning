@@ -373,9 +373,10 @@ def main():
 
     # 9. TRAINING ARGUMENTS
     # When resuming from checkpoint, we must NOT set num_train_epochs, max_steps, learning_rate,
-    # or any scheduler-related parameters (lr_scheduler_type, warmup_ratio, warmup_steps).
-    # The Trainer will read these from trainer_state.json and scheduler.pt in the checkpoint.
-    # Setting them will override the checkpoint values and reset the step counter/scheduler/loss curve.
+    # or any scheduler/optimizer-related parameters (lr_scheduler_type, warmup_ratio, warmup_steps,
+    # weight_decay, adam_beta1, adam_beta2, adam_epsilon, optim, optim_args).
+    # The Trainer will read these from trainer_state.json, optimizer.pt, and scheduler.pt in the checkpoint.
+    # Setting them will override the checkpoint values and reset the step counter/scheduler/optimizer/loss curve.
     
     training_kwargs = dict(
         output_dir=cfg.output_dir,
@@ -399,12 +400,15 @@ def main():
     
     # Only set training parameters if NOT resuming
     # When resuming, the Trainer will load all state from checkpoint:
-    # - optimizer.pt (optimizer state)
+    # - optimizer.pt (optimizer state including momentum, variance, etc.)
     # - scheduler.pt (learning rate scheduler state)  
     # - trainer_state.json (step counter, epoch, best loss, log history, etc.)
+    # Optimizer hyperparameters (weight_decay, adam_beta1/2, etc.) are baked into optimizer.pt
     if not args.resume:
         training_kwargs['num_train_epochs'] = cfg.num_epochs
         training_kwargs['learning_rate'] = cfg.learning_rate
+        # Scheduler parameters should only be set on fresh training
+        # On resume, these will be loaded from scheduler.pt
 
     training_args = TrainingArguments(**training_kwargs)
 
@@ -429,13 +433,32 @@ def main():
             if os.path.exists(trainer_state_path):
                 with open(trainer_state_path, 'r') as f:
                     state = json.load(f)
-                print(f"\n{'='*60}")
-                print(f"RESUMING FROM CHECKPOINT: {checkpoint_path}")
-                print(f"{'='*60}")
-                print(f"Last Global Step: {state.get('global_step', 'N/A')}")
-                print(f"Last Loss: {state.get('log_history', [])[-1].get('loss', 'N/A') if state.get('log_history') else 'N/A'}")
-                print(f"Last Grad Norm: {state.get('log_history', [])[-1].get('grad_norm', 'N/A') if state.get('log_history') else 'N/A'}")
-                print(f"{'='*60}\n")
+                
+                # Replay previous losses to console so user sees continuous history
+                log_history = state.get('log_history', [])
+                if log_history:
+                    print(f"\n{'='*60}")
+                    print(f"RESUMING FROM CHECKPOINT: {checkpoint_path}")
+                    print(f"{'='*60}")
+                    print(f"Replaying {len(log_history)} previous training steps...\n")
+                    
+                    # Replay all previous log entries
+                    for entry in log_history:
+                        if 'loss' in entry:
+                            step = entry.get('step', 0)
+                            loss = entry.get('loss', 0)
+                            learning_rate = entry.get('learning_rate', 0)
+                            print(f"step: {step:<8d} loss: {loss:.4f} learning_rate: {learning_rate:.2e}")
+                    
+                    print(f"\n{'='*60}")
+                    print(f"Continuing training from step {state.get('global_step', 0) + 1}...")
+                    print(f"{'='*60}\n")
+                else:
+                    print(f"\n{'='*60}")
+                    print(f"RESUMING FROM CHECKPOINT: {checkpoint_path}")
+                    print(f"{'='*60}")
+                    print(f"Last Global Step: {state.get('global_step', 'N/A')}")
+                    print(f"{'='*60}\n")
             else:
                 print(f"Warning: trainer_state.json not found in {checkpoint_path}")
         else:
