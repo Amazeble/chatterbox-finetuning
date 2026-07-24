@@ -2,6 +2,7 @@ import os
 import requests
 import sys
 import json
+import argparse
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
@@ -20,6 +21,8 @@ CHATTERBOX_TURBO_FILES = {
     "merges.txt": "https://huggingface.co/ResembleAI/chatterbox-turbo/resolve/main/merges.txt?download=true",
     "grapheme_mtl_merged_expanded_v1.json": "https://huggingface.co/ResembleAI/chatterbox/resolve/main/grapheme_mtl_merged_expanded_v1.json?download=true"
 }
+
+EXTRA_FILES = ["grapheme_mtl_merged_expanded_v1.json"]
 
 def download_file(url, dest_path):
     """Downloads a file from a URL to a specific destination with a progress bar."""
@@ -142,6 +145,11 @@ def main():
     
     print("--- Chatterbox Turbo Pretrained Model Setup ---\n")
     
+    # Parse arguments
+    parser = argparse.ArgumentParser(description="Setup Chatterbox Turbo pretrained models")
+    parser.add_argument("--no-extra", action="store_true", help="Skip downloading extra files (e.g., grapheme_mtl_merged_expanded_v1.json)")
+    args = parser.parse_args()
+    
     # 1. Create the directory if it doesn't exist
     if not os.path.exists(DEST_DIR):
         
@@ -160,23 +168,40 @@ def main():
 
     # Always use turbo mode
     print(f"Mode: CHATTERBOX-TURBO (Checking {len(CHATTERBOX_TURBO_FILES)} files)")
-    FILES_TO_DOWNLOAD = CHATTERBOX_TURBO_FILES
+    FILES_TO_DOWNLOAD = CHATTERBOX_TURBO_FILES.copy()
+    
+    # Remove extra files if --no-extra is specified
+    if args.no_extra:
+        print("--no-extra flag detected. Skipping extra files.")
+        for extra_file in EXTRA_FILES:
+            if extra_file in FILES_TO_DOWNLOAD:
+                del FILES_TO_DOWNLOAD[extra_file]
 
     # 2. Download files
     for filename, url in FILES_TO_DOWNLOAD.items():
         dest_path = os.path.join(DEST_DIR, filename)
         download_file(url, dest_path)
 
-    new_vocab_size = merge_and_save_turbo_tokenizer()
-    if new_vocab_size > 0:
-        
-        #test_merge_tokenizer_process(DEST_DIR)
+    # Only merge tokenizer if extra files were downloaded
+    if not args.no_extra or "grapheme_mtl_merged_expanded_v1.json" in FILES_TO_DOWNLOAD:
+        new_vocab_size = merge_and_save_turbo_tokenizer()
+        if new_vocab_size > 0:
+            
+            #test_merge_tokenizer_process(DEST_DIR)
 
+            print("\n" + "="*60)
+            print("INSTALLATION COMPLETE (CHATTERBOX-TURBO MODE)")
+            print("All models are set up in 'pretrained_models/' folder.")
+            print(f"Please update the 'new_vocab_size' value in the 'src/config.py' file")
+            print(f"to: {new_vocab_size}")
+            print("="*60 + "\n")
+    else:
         print("\n" + "="*60)
-        print("INSTALLATION COMPLETE (CHATTERBOX-TURBO MODE)")
+        print("INSTALLATION COMPLETE (CHATTERBOX-TURBO MODE - NO EXTRA)")
         print("All models are set up in 'pretrained_models/' folder.")
-        print(f"Please update the 'new_vocab_size' value in the 'src/config.py' file")
-        print(f"to: {new_vocab_size}")
+        print("Note: Custom vocab merging was skipped (--no-extra flag).")
+        print("Please update the 'new_vocab_size' value in the 'src/config.py' file")
+        print(f"to: {50257} (base GPT-2 medium vocab size)")
         print("="*60 + "\n")
 
 
