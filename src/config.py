@@ -20,7 +20,7 @@ class TrainConfig:
     # Optional project isolation. Set project_name (e.g. "Elise") to enable it.
     # By default, files are placed under ./project/<project_name>.
     # Set project_base_dir to override that directory explicitly.
-    project_name: str | None = None
+    project_name: str | None = "Elise"
     project_base_dir: str | None = None
 
     # Directory where setup.py downloads the base model files
@@ -61,12 +61,12 @@ class TrainConfig:
 
     # --- Hyperparameters ---
     batch_size: int = 8   # Adjust to VRAM
-    grad_accum: int = 1    # Effective batch = batch_size * grad_accum
+    grad_accum: int = 2    # Effective batch = batch_size * grad_accum
     learning_rate: float = 1e-4 if is_lora else 1e-5
-    num_epochs: int = 10 if is_lora else 20
+    num_epochs: int = 14 if is_lora else 20
     save_steps: int = 500
     logging_steps: int = 100
-    save_total_limit: int = 5
+    save_total_limit: int = 2
     dataloader_num_workers: int = 4
 
     # --- Constraints ---
